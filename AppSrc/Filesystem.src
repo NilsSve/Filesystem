@@ -1,4 +1,8 @@
 ﻿Use DFAllEnt.pkg
+Use cFilesystem.pkg
+
+Object oFilesystem is a cFilesystem
+End_Object
 
 Object oApplication is a cApplication
 End_Object
