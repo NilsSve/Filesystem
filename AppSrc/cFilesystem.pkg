@@ -550,7 +550,6 @@ Class cFilesystem is a cObject
     
     // Closing a binary file
     // Returns true if the file could be closed.
-    // ToDo: Test
     Function BinaryFileClose Integer iFilenumber Returns Boolean
         Integer iRetVal iErrorNumber
         Handle hHandle
@@ -565,7 +564,9 @@ Class cFilesystem is a cObject
             Move (fsCloseHandle(hHandle)) to iRetVal
             If (iRetVal = 0) Begin           // Could not close
                 Move (fsGetLastError()) to iErrorNumber
-                If iErrorNumber Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
+                If iErrorNumber Begin
+                    Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
+                End
             End
             Else Begin
                 Get plsaFile to lsFile
@@ -586,52 +587,47 @@ Class cFilesystem is a cObject
     End_Function
 
 
-    // Reading text from a binary file.
+    // Reading text from a binary file as a text file
     // todo: Add comment for reading binary data use the uchar version
-    // The text read from the file is placed in sReadBuffer and the function returns the number of bytes read.
-    // Then the function returns 0 the end of file has been reached (pbEOF will then be true) or an error has occured (pbError will then be true).
-    // No errors occures if you try to read past end of file.
-    // To speed up reading process you should read in a block of data at a time (i.e. iNumberOfBytes = 2000) instead of 
-    // reading one byte at a time. No errors occures if you try to read past end
-    // of file. Note that iNumberOfBytes must not exceed the argument size.
-    // Note that this used to handle binary data
-    // ToDo: Test
-    Function BinaryFileReadText Integer iFilenumber Integer iNumberOfBytes String ByRef sReadBuffer Returns Integer
+    // The text read from the file and returned. It reads the whole file at once.
+    // pbEOF will then be true when the file has been read.
+    // pbError will then be True if an error has occured.
+    Function BinaryFileReadText Integer iFilenumber Returns String
         Handle hFileHandle
-        Integer iBytesRead iMaxBuffer iErrorNumber
+        Integer iBytesRead iErrorNumber iNumberOfBytes
         Boolean bOk
         structFile[] lsFile
-        Set pbError to False
-        Move 0 to iBytesRead
-        Get_Argument_Size to iMaxBuffer
-        If (iNumberOfBytes > iMaxBuffer) Begin
-            Send warning_box "Blocksize to read exceeds argument size!"
-            Function_Return iBytesRead
-        End
+        String sReadBuffer
+        Get BinaryFileSize iFilenumber to iNumberOfBytes
         If (iNumberOfBytes < 1) Begin
             Send warning_box "Number of bytes to read can not be less than one."
-            Function_Return iBytesRead
-        End
+            Function_Return sReadBuffer
+        End       
+        Set pbError to False
+        Move 0 to iBytesRead
         Get BinaryFileHandle iFilenumber to hFileHandle
         If hFileHandle Begin
-            ZeroString iNumberOfBytes to sReadBuffer
+            Move (ZeroString(iNumberOfBytes)) to sReadBuffer
             Move (fsReadFile(hFileHandle, AddressOf(sReadBuffer), iNumberOfBytes, (AddressOf(iBytesRead)), FNULL)) to bOk
             If (bOk = False) Begin
                 Move (fsGetLastError()) to iErrorNumber
-                If iErrorNumber Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
+                If iErrorNumber Begin
+                    Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
+                End
             End
             Else Begin
-                If (iBytesRead = 0 or iBytesRead <> iNumberOfBytes) Begin
+                If (iBytesRead = iNumberOfBytes) Begin
                     Get plsaFile to lsFile
                     Move True to lsFile[iFilenumber].bEndOfFile
                     Set plsaFile to lsFile
                     Set pbEOF to True
-                    Move (Left(sReadBuffer, iBytesRead)) to sReadBuffer
                 End
             End
         End
-        Else Send warning_box FS_FILEHANDLEMISSING
-        Function_Return iBytesRead
+        Else Begin
+            Send warning_box FS_FILEHANDLEMISSING
+        End
+        Function_Return sReadBuffer
     End_Function
 
 

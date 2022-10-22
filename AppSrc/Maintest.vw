@@ -25,11 +25,23 @@ Object oMaintest is a dbView
     Object oCreateTextFile is a Button
         Set Size to 14 58
         Set Location to 33 18
-        Set Label to "Create textfile"
+        Set Label to "Create text file"
     
         // fires when the button is clicked
         Procedure OnClick
             Send CreateTextFile
+        End_Procedure
+    
+    End_Object
+
+    Object oButton1 is a Button
+        Set Size to 14 58
+        Set Location to 33 87
+        Set Label to "Read text file"
+    
+        // fires when the button is clicked
+        Procedure OnClick
+            Send ReadTextFile
         End_Procedure
     
     End_Object
@@ -41,5 +53,20 @@ Object oMaintest is a dbView
         Send DoDumpString of oFilesystem "Text with æøåÆØÅ." sFile
     End_Procedure
     
+    Procedure ReadTextFile
+        String sFile sText
+        Integer iFilenumber
+        Boolean bOk
+        Get Value of oTestFile to sFile
+        Get BinaryFileNextFilenumber of oFilesystem to iFilenumber
+        Get BinaryFileOpen of oFilesystem iFilenumber sFile to bOk
+        If (bOk) Begin
+            Get BinaryFileReadText of oFilesystem iFilenumber to sText
+            Get BinaryFileClose of oFilesystem iFilenumber to bOk
+            If (SizeOfString(sText) < 1000) Begin
+                Send Info_Box sText
+            End
+        End
+    End_Procedure
 
 End_Object
