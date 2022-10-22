@@ -166,8 +166,8 @@ End_Enum_List
 // Functions that needs variables for output are made global stings or
 // integers, and can be found on top of the declaration.
 //************************************************************************
-External_Function fsCreatefile "CreateFileA" kernel32.dll ;
-    Pointer lpFile ;      //filename
+External_Function fsCreatefile "CreateFileW" kernel32.dll ;
+    WString lpFile ;      // filename
     DWord dwDesAccess ;   // access mode
     DWord dwShare ;       // share mode
     Pointer lpSecAtt ;    // SD
@@ -359,7 +359,7 @@ End_Struct
 
 Struct structFile
     Handle hFilehandle
-    String sFilename    // Assigned filename in Utf-8 format.
+    String sFilename    // Assigned filename.
     Boolean bEndOfFile  // True then the end of the binary file had been read.
 End_Struct
 
@@ -486,45 +486,52 @@ Class cFilesystem is a cObject
     // If bCreate is True the file is created if it does not exist already.
     // If bReadOnly is True the file is opened with only read access (and only read shared mode if bShared is also true).
     // Returns true if the file was opened or created without error.
-    // ToDo: Test
     Function BinaryFileOpen Integer iFilenumber String sFilename Boolean bShared Boolean bCreate Boolean bReadOnly Returns Boolean
         Pointer lpFilenamePointer
         Integer iReturnValue iErrornumber
         DWord dwSharedMode dwCreateMode dwAccessMode
         structFile[] lsFile
-        String sFilenameANSI
         Boolean bOk bFilehandleOK
         Get plsaFile to lsFile
         If (iFilenumber < SizeOfArray(lsFile)) Begin
-            If (lsFile[iFilenumber].hFilehandle = 0) Move True to bFilehandleOK
+            If (lsFile[iFilenumber].hFilehandle = 0) Begin
+                Move True to bFilehandleOK
+            End
         End
-        Else Move True to bFilehandleOK
+        Else Begin
+            Move True to bFilehandleOK
+        End
         If bFilehandleOK Begin
             Move sFilename to lsFile[iFilenumber].sFilename
-            // ToDo: Test
-            Move (Utf8ToAnsi(sFilename)) to sFilenameANSI
             Set pbError to False
             Move False to bOk
             Move GENERIC_RANDOM to dwAccessMode
             Move FNULL to dwSharedMode
             If (num_arguments > 2) Begin
-                If (bShared = True) Move FILE_SHARE_RANDOM to dwSharedMode
+                If (bShared = True) Begin
+                    Move FILE_SHARE_RANDOM to dwSharedMode
+                End
             End
             Move OPEN_EXISTING to dwCreateMode
             If (num_arguments > 3) Begin
-                If (bCreate = True) Move OPEN_ALWAYS to dwCreateMode
+                If (bCreate = True) Begin
+                    Move OPEN_ALWAYS to dwCreateMode
+                End
             End
             If (num_arguments > 4) Begin
                 If (bReadOnly = True) Begin
                     Move GENERIC_READ to dwAccessMode
-                    If (bShared = True) Move FILE_SHARE_READ to dwSharedMode
+                    If (bShared = True) Begin
+                        Move FILE_SHARE_READ to dwSharedMode
+                    End
                 End
             End
-            // ToDo: Test
-            Move (fsCreatefile(AddressOf(sFilenameANSI), dwAccessMode, dwSharedMode, FNULL, dwCreateMode, FILE_ATTRIBUTE_NORMAL, FNULL)) to iReturnValue
+            Move (fsCreatefile(sFilename, dwAccessMode, dwSharedMode, FNULL, dwCreateMode, FILE_ATTRIBUTE_NORMAL, FNULL)) to iReturnValue
             If (iReturnValue = INVALID_HANDLE_VALUE) Begin
                 Move (fsGetLastError()) to iErrornumber
-                If iErrornumber Send DoShowError iErrornumber ("File: "+ sFilename)
+                If iErrornumber Begin
+                    Send DoShowError iErrornumber ("File: "+ sFilename)
+                End
             End
             Else Begin
                 Move iReturnValue to lsFile[iFilenumber].hFilehandle
