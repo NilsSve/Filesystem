@@ -359,7 +359,7 @@ End_Struct
 
 Struct structFile
     Handle hFilehandle
-    String sFilename    // Assigned filename in OEM format.
+    String sFilename    // Assigned filename in Utf-8 format.
     Boolean bEndOfFile  // True then the end of the binary file had been read.
 End_Struct
 
@@ -445,7 +445,7 @@ Class cFilesystem is a cObject
 
         // Keeps assigned handles and filenames for each filenumber.
         // private
-        Property structFile[] plsFile
+        Property structFile[] plsaFile
         
         // Keeps read cached buffers for each filenumer. Used for BinaryReadChcheu
         // private
@@ -462,7 +462,7 @@ Class cFilesystem is a cObject
     Function BinaryFileNextFilenumber Returns Integer
         structFile[] lsFile
         Integer iMaxFiles iCurrentFile iNextFileNumber
-        Get plsFile to lsFile
+        Get plsaFile to lsFile
         Move (SizeOfArray(lsFile)) to iMaxFiles
         Move -1 to iNextFileNumber
         Move 0 to iCurrentFile
@@ -489,7 +489,7 @@ Class cFilesystem is a cObject
         structFile[] lsFile
         String sFilenameANSI
         Boolean bOk bFilehandleOK
-        Get plsFile to lsFile
+        Get plsaFile to lsFile
         If (iFilenumber < SizeOfArray(lsFile)) Begin
             If (lsFile[iFilenumber].hFilehandle = 0) Move True to bFilehandleOK
         End
@@ -524,7 +524,7 @@ Class cFilesystem is a cObject
             Else Begin
                 Move iReturnValue to lsFile[iFilenumber].hFilehandle
                 Move False to lsFile[iFilenumber].bEndOfFile
-                Set plsFile to lsFile
+                Set plsaFile to lsFile
                 Set pbEOF to False
                 Move True to bOk
             End
@@ -556,7 +556,7 @@ Class cFilesystem is a cObject
                 If iErrorNumber Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
             End
             Else Begin
-                Get plsFile to lsFile
+                Get plsaFile to lsFile
                 Get plsCachedPointer to lsFileBufferPointer
                 Get psaCachedBuffer to saCachedBuffer
                 Move 0 to lsFile[iFilenumber].hFilehandle
@@ -564,7 +564,7 @@ Class cFilesystem is a cObject
                 Move 1 to lsFileBufferPointer[iFilenumber].iBufferPointer
                 Move 0 to lsFileBufferPointer[iFilenumber].iBufferSize
                 Move 0 to lsFileBufferPointer[iFilenumber].biFromFilePosition
-                Set plsFile to lsFile
+                Set plsaFile to lsFile
                 Set plsCachedPointer to lsFileBufferPointer
                 Set psaCachedBuffer to saCachedBuffer
                 Move True to bOk
@@ -610,9 +610,9 @@ Class cFilesystem is a cObject
             End
             Else Begin
                 If (iBytesRead = 0 or iBytesRead <> iNumberOfBytes) Begin
-                    Get plsFile to lsFile
+                    Get plsaFile to lsFile
                     Move True to lsFile[iFilenumber].bEndOfFile
-                    Set plsFile to lsFile
+                    Set plsaFile to lsFile
                     Set pbEOF to True
                     Move (Left(sReadBuffer, iBytesRead)) to sReadBuffer
                 End
@@ -639,7 +639,7 @@ Class cFilesystem is a cObject
         structFile[] lsFile
         structFileBufferPointer[] lsFileBufferPointer
         String[] saCachedBuffer
-        Get plsFile to lsFile
+        Get plsaFile to lsFile
         Move "" to sReturnBuffer
         Move 1 to iMatchPos
         Move False to bEndOfFile
@@ -705,7 +705,7 @@ Class cFilesystem is a cObject
         String[] saCachedBuffer
         Boolean bInTextFieldMode bTextFieldReady bFieldSeparator bTextQualificator bEscapeTextQualificatorTest bByteOk
         BigInt biAfterTextQualificator
-        Get plsFile to lsFile
+        Get plsaFile to lsFile
         If (num_arguments > 6) Begin
             Move sCharEOL to sEOL
         End
@@ -1010,7 +1010,7 @@ Class cFilesystem is a cObject
             Else Move True to bOk
             If bOk Begin
                 Get BinaryFileSize iFilenumber to biFileSize
-                Get plsFile to lsFile
+                Get plsaFile to lsFile
                 If (biFileSize > biPosition) Begin
                     Move False to lsFile[iFilenumber].bEndOfFile
                     Set pbEOF to False
@@ -1019,7 +1019,7 @@ Class cFilesystem is a cObject
                     Move True to lsFile[iFilenumber].bEndOfFile
                     Set pbEOF to True
                 End
-                Set plsFile to lsFile
+                Set plsaFile to lsFile
             End
         End
         Else Send warning_box FS_FILEHANDLEMISSING
@@ -1111,9 +1111,9 @@ Class cFilesystem is a cObject
                     If iErrorNumber Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
                 End
                 Else Begin
-                    Get plsFile to lsFile
+                    Get plsaFile to lsFile
                     Move True to lsFile[iFilenumber].bEndOfFile
-                    Set plsFile to lsFile
+                    Set plsaFile to lsFile
                     Set pbEOF to True
                 End
             End
@@ -1133,7 +1133,7 @@ Class cFilesystem is a cObject
         Set pbError to False
         Get BinaryFileHandle iFilenumber to hFileHandle
         If hFileHandle Begin
-            Get plsFile to lsFile
+            Get plsaFile to lsFile
             Move lsFile[iFilenumber].bEndOfFile to bEndOfFile
         End
         Else Send warning_box FS_FILEHANDLEMISSING
@@ -1147,7 +1147,7 @@ Class cFilesystem is a cObject
     Function BinaryFileHandle Integer iFilenumber Returns Handle
         Handle hFileHandle
         structFile[] lsFile
-        Get plsFile to lsFile
+        Get plsaFile to lsFile
         If (iFilenumber < SizeOfArray(lsFile)) Move lsFile[iFilenumber].hFilehandle to hFileHandle
         Function_Return hFileHandle
     End_Function
@@ -2218,7 +2218,7 @@ Class cFilesystem is a cObject
     Function FileErrorText Integer iFilenumber Returns String
         String sErrorText
         structFile[] lsFile
-        Get plsFile to lsFile
+        Get plsaFile to lsFile
         If (iFilenumber < SizeOfArray(lsFile)) Move ("File: "+lsFile[iFilenumber].sFilename) to sErrorText
         Function_Return sErrorText
     End_Function
