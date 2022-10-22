@@ -71,6 +71,7 @@ Define ERROR_NO_MORE_FILES    for |CI18
 Define ERROR_MOD_NOT_FOUND    for |CI126
 #ENDIF
 
+// ToDo: Examine if this is still the same when dealing with unicode versions.
 #IFNDEF MAX_PATH
 Define MAX_PATH               for 260
 #ENDIF
@@ -457,6 +458,7 @@ Class cFilesystem is a cObject
 
 
     // Returns the next available filenumber for a binary file.
+    // ToDo: Test
     Function BinaryFileNextFilenumber Returns Integer
         structFile[] lsFile
         Integer iMaxFiles iCurrentFile iNextFileNumber
@@ -479,6 +481,7 @@ Class cFilesystem is a cObject
     // If bCreate is True the file is created if it does not exist already.
     // If bReadOnly is True the file is opened with only read access (and only read shared mode if bShared is also true).
     // Returns true if the file was opened or created without error.
+    // ToDo: Test
     Function BinaryFileOpen Integer iFilenumber String sFilename Boolean bShared Boolean bCreate Boolean bReadOnly Returns Boolean
         Pointer lpFilenamePointer
         Integer iReturnValue iErrornumber
@@ -535,6 +538,7 @@ Class cFilesystem is a cObject
     
     // Closing a binary file
     // Returns true if the file could be closed.
+    // ToDo: Test
     Function BinaryFileClose Integer iFilenumber Returns Boolean
         Integer iRetVal iErrorNumber
         Handle hHandle
@@ -570,14 +574,17 @@ Class cFilesystem is a cObject
     End_Function
 
 
-    // Reading from a binary file.
-    // The data read from the file is placed in sReadBuffer and the function returns the number of bytes read.
+    // Reading text from a binary file.
+    // todo: Add comment for reading binary data use the uchar version
+    // The text read from the file is placed in sReadBuffer and the function returns the number of bytes read.
     // Then the function returns 0 the end of file has been reached (pbEOF will then be true) or an error has occured (pbError will then be true).
     // No errors occures if you try to read past end of file.
     // To speed up reading process you should read in a block of data at a time (i.e. iNumberOfBytes = 2000) instead of 
     // reading one byte at a time. No errors occures if you try to read past end
     // of file. Note that iNumberOfBytes must not exceed the argument size.
-    Function BinaryFileRead Integer iFilenumber Integer iNumberOfBytes String ByRef sReadBuffer Returns Integer
+    // Note that this used to handle binary data
+    // ToDo: Test
+    Function BinaryFileReadText Integer iFilenumber Integer iNumberOfBytes String ByRef sReadBuffer Returns Integer
         Handle hFileHandle
         Integer iBytesRead iMaxBuffer iErrorNumber
         Boolean bOk
@@ -622,6 +629,9 @@ Class cFilesystem is a cObject
     // The return string buffer would also be empty.
     // No errors occures if you try to read past end of file.
     // To speed up reading process the buffer will be read in sizes of the current argument_size. 
+    // ToDo: Caching should be removed, as it is not needed in newer versions of windows (I think)
+    // ToDo: Also caching would give a problem with the encoded unicode characters as it might break in the middle of a unicode encoding.)
+    // ToDo: Test
     Function BinaryFileReadCachedUntilMatch Integer iFilenumber String sMatchString String ByRef sReturnBuffer Boolean ByRef bEndOfFile Returns Integer
         Handle hFileHandle
         Integer iBuffersize iMatchPos iLengthMatch
@@ -647,7 +657,8 @@ Class cFilesystem is a cObject
                     If (lsFileBufferPointer[iFilenumber].iBufferPointer > lsFileBufferPointer[iFilenumber].iBufferSize) Begin
                         Get_Argument_Size to iBuffersize
                         Get BinaryFilePosition iFilenumber to lsFileBufferPointer[iFilenumber].biFromFilePosition
-                        Get BinaryFileRead iFilenumber iBuffersize (&saCachedBuffer[iFilenumber]) to lsFileBufferPointer[iFilenumber].iBufferSize
+                        // ToDo: Fix
+                        Get BinaryFileReadText iFilenumber iBuffersize (&saCachedBuffer[iFilenumber]) to lsFileBufferPointer[iFilenumber].iBufferSize
                         Move 1 to lsFileBufferPointer[iFilenumber].iBufferPointer
                         Set psaCachedBuffer to saCachedBuffer
                     End
@@ -682,6 +693,9 @@ Class cFilesystem is a cObject
     // The return string buffer would also be empty.
     // No errors occures if you try to read past end of file.
     // To speed up reading process the buffer will be read in sizes of the current argument_size. 
+    // ToDo: Caching should be removed, as it is not needed in newer versions of windows (I think)
+    // ToDo: Also caching would give a problem with the encoded unicode characters as it might break in the middle of a unicode encoding.)
+    // ToDo: Test
     Function BinaryFileReadCachedCSV Integer iFilenumber String sFieldseparator String sTextQualification String ByRef sReturnBuffer Boolean ByRef bEndOfRow Boolean ByRef bEndOfFile String sCharEOL Returns Integer
         Handle hFileHandle
         Integer iLengthSeparator iLengthTextQualification iEOLLength iTestLength
@@ -801,13 +815,15 @@ Class cFilesystem is a cObject
     
     
     {Visibility = Private}
+    // ToDo: Test
     Function NextByteCSV Integer ByRef iFilenumber structFileBufferPointer ByRef lsFileBufferPointer String[] ByRef saCachedBuffer String ByRef sByte Returns String
         Integer iBufferSize
         Boolean bOk
         If (lsFileBufferPointer.iBufferPointer > lsFileBufferPointer.iBufferSize) Begin
             Get_Argument_Size to iBufferSize
             Get BinaryFilePosition iFilenumber to lsFileBufferPointer.biFromFilePosition
-            Get BinaryFileRead iFilenumber iBufferSize (&saCachedBuffer[iFilenumber]) to lsFileBufferPointer.iBufferSize
+            // ToDo: Fix
+            Get BinaryFileReadText iFilenumber iBufferSize (&saCachedBuffer[iFilenumber]) to lsFileBufferPointer.iBufferSize
             Move 1 to lsFileBufferPointer.iBufferPointer
             Set psaCachedBuffer to saCachedBuffer    
         End
@@ -825,6 +841,9 @@ Class cFilesystem is a cObject
     // Data is returned without the ending sCharEOL
     // If sCharEOL is not applied the charactersequence character(13) + character(10) is used.
     // Returns True when the line has been read.
+    // ToDo: Caching should be removed, as it is not needed in newer versions of windows (I think)
+    // ToDo: Also caching would give a problem with the encoded unicode characters as it might break in the middle of a unicode encoding.)
+    // ToDo: Test
     Function BinaryFileReadCachedLN Integer iFilenumber String ByRef sLine Boolean ByRef bEndOfFile String sCharEOL Returns Boolean
         Boolean bEndOfRow 
         Integer iBytesRead iEOLLength
@@ -845,11 +864,13 @@ Class cFilesystem is a cObject
         End
         Function_Return bEndOfRow
     End_Function
+    
+    // ToDo: Add the UCHAR versions from cFileSystemUCHAR for working with binary data.
 
-
-    // Writing to a binary file.
+    // Writing text to a binary file.
+    // ToDo: Add comment about using UCHAR version for writing data.
     // Returns true if the string was written to the file without error.
-    Function BinaryFileWrite Integer iFilenumber String ByRef sWriteData Returns Boolean
+    Function BinaryFileWriteText Integer iFilenumber String ByRef sWriteData Returns Boolean
         Integer iBytesWritten iBytesToWrite iErrorNumber
         Handle hFileHandle
         Boolean bOk
@@ -858,7 +879,6 @@ Class cFilesystem is a cObject
         Get BinaryFileHandle iFilenumber to hFileHandle
         If hFileHandle Begin
             Move 0 to iBytesWritten
-            // ToDo: Test med æøåÆØÅ
             Move (SizeOfString(sWriteData)) to iBytesToWrite
             Move (fsWriteFile(hFileHandle, AddressOf(sWriteData), iBytesToWrite, AddressOf(iBytesWritten), FNULL)) to bOk
             If (bOk = False) Begin
@@ -866,7 +886,7 @@ Class cFilesystem is a cObject
                 If iErrorNumber Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
             End
             If (iBytesToWrite <> iBytesWritten) Begin
-                Send Warning_box "Not all data could be written!"
+                Send Warning_box "Not all text could be written!"
                 Move False to bOk
             End
         End
@@ -879,6 +899,7 @@ Class cFilesystem is a cObject
     // HEX values in sWriteHEX are first coverted to bytes and then written
     // to the binary file.
     // Returns true if the HEX data was written to the file without error.
+    // ToDo: Test
     Function BinaryFileWriteHex Integer iFilenumer String ByRef sWriteHex Returns Boolean
         String sData 
         Integer iLength iCount iByte
@@ -890,23 +911,28 @@ Class cFilesystem is a cObject
             Move (iCount + 2) to iCount
             Move (sData + Character(iByte)) to sData
         Loop
-        Get BinaryFileWrite iFilenumer (&sData) to bOk
+        // ToDo: Use the UCHAR version?
+        // ToDo: Test
+        Get BinaryFileWriteText iFilenumer (&sData) to bOk
         Function_Return bOk
     End_Function
     
     
-    // Shortcut to write to a binary file as a textfile.
+    // Shortcut to write text to a binary file as a textfile.
     // Writes the string and appends character(13) and character(10) to the binary file.
     // Returns true if the data was written to the file without error.
+    // ToDo: Test
     Function BinaryFileWriteLN Integer iFilenumber String sWriteData Returns Boolean
         Boolean bOk
         Move (sWriteData + ((Character(13))+(character(10)))) to sWriteData
-        Get BinaryFileWrite iFilenumber (&sWriteData) to bOk
+        // ToDo: Test
+        Get BinaryFileWriteText iFilenumber (&sWriteData) to bOk
         Function_Return bOk
     End_Function 
 
 
     // Retrives the file size from a binary file.
+    // ToDo: Test
     Function BinaryFileSize Integer iFilenumber Returns BigInt
         BigInt biFilesize
         Handle hFileHandle
@@ -930,6 +956,7 @@ Class cFilesystem is a cObject
 
     // Retrives the file position from a binary file.
     // Returns -1 if an error occured.
+    // ToDo: Test
     Function BinaryFilePosition Integer iFilenumber Returns BigInt
         BigInt biFilePosition biBigHi
         Handle hFileHandle
@@ -959,6 +986,7 @@ Class cFilesystem is a cObject
 
 
     // Sets the file position from a binary file to a new position.
+    // ToDo: Test
     Procedure Set BinaryFilePosition Integer iFilenumber BigInt biPosition
         Handle hFileHandle
         Integer iHi iErrorNumber
@@ -1000,6 +1028,7 @@ Class cFilesystem is a cObject
 
     
     // Returns -1 if an error occured.
+    // ToDo: Test
     Function BinaryFileCachedPosition Integer iFileNumber Returns BigInt
         BigInt biPosition
         structFileBufferPointer[] lsFileBufferPointer
@@ -1026,6 +1055,7 @@ Class cFilesystem is a cObject
 
 
     // Sets the pointer for the current file cache.
+    // ToDo: Test
     Procedure Set BinaryFileChachedPosition Integer iFileNumber BigInt biNewPosition
         Handle hFileHandle
         structFileBufferPointer[] lsFileBufferPointer
@@ -1063,6 +1093,7 @@ Class cFilesystem is a cObject
     // Truncate or extend a binary file to the specified file position
     // by setting the binary file End Of File position.
     // If biPosition is -1 the current file position is used as EOF position.
+    // ToDo: Test
     Procedure Set BinaryFileEndOfFile Integer iFilenumber BigInt biPosition
         Handle hFileHandle
         Boolean bError bOk 
@@ -1093,6 +1124,7 @@ Class cFilesystem is a cObject
 
     
     // Returns true if the last read from the binary file had reached the end.
+    // ToDo: Test
     Function BinaryFileEndOfFile Integer iFilenumber Returns Boolean
         structFile[] lsFile
         Handle hFileHandle
@@ -1111,6 +1143,7 @@ Class cFilesystem is a cObject
 
     // Returns the filehandle from the filenumber.
     // Returns 0 if the filenumber is not used.
+    // ToDo: Test
     Function BinaryFileHandle Integer iFilenumber Returns Handle
         Handle hFileHandle
         structFile[] lsFile
@@ -1125,6 +1158,7 @@ Class cFilesystem is a cObject
     // iMode = DIRMODE_DIRECTORIES_ONLY
     // iMode = DIRMODE_FILES_AND_DIRECTORIES
     // Returns True if found
+    // ToDo: Test
     Function FileExists String sFilePathMask Integer iFileDirMode Returns Boolean
         Integer iMode
         Boolean bFound
@@ -1141,6 +1175,7 @@ Class cFilesystem is a cObject
 
     // Deletes a file.
     // Returns True if succeeds.
+    // ToDo: Test
     Function FileDelete String sFilename Integer iRetryAttempts Returns Boolean
         Boolean bFound bDeleted
         Integer iErrorNumber iRetryLeft
@@ -1172,6 +1207,7 @@ Class cFilesystem is a cObject
 
     // Moves a file or directory.
     // Returns True if succeeds.
+    // ToDo: Test
     Function FileMove String sExistingFileName String sNewFileName Integer iRetryAttempts Returns Boolean
         Boolean bMoved
         Integer iErrorNumber iRetryLeft
@@ -1202,6 +1238,7 @@ Class cFilesystem is a cObject
 
     // Copies a file. Overwriting an existing file by default.
     // Returns True if succeeds.
+    // ToDo: Test
     Function FileCopy String sExistingFileName String sNewFileName Boolean bFailIfExists Integer iRetryAttempts Returns Boolean
         Boolean bCopied
         String sExistingFileNameANSI sNewFileNameANSI
@@ -1235,6 +1272,7 @@ Class cFilesystem is a cObject
 
     // Renames a file or directory.
     // Returns True if succeeds.
+    // ToDo: Test
     Function FileRename String sExistingFileName String sNewFileName Integer iRetryAttempts Returns Boolean
         Boolean bRenamed
         If (num_arguments > 2) Begin
@@ -1249,6 +1287,7 @@ Class cFilesystem is a cObject
 
     // Returns the file size of a file.
     // Returns -1 if an error occured.
+    // ToDo: Test
     Function FileSize String sFilename Returns BigInt
         tsSearchResult[] lsSearchResult
         Get FileSearch sFilename DIRMODE_FILES_ONLY to lsSearchResult
@@ -1259,6 +1298,7 @@ Class cFilesystem is a cObject
 
     // Returns the last write date of a file.
     // Returns 0 if an error occured.
+    // ToDo: Test
     Function FileDate String sFilename Returns Date
         tsSearchResult[] lsSearchResult
         Get FileSearch sFilename DIRMODE_FILES_ONLY to lsSearchResult
@@ -1269,6 +1309,7 @@ Class cFilesystem is a cObject
 
     // Returns the fileversion info.
     // Returns false if an error occured.
+    // ToDo: Test
     Function FileVersion String sFilename tsFileVersionInfo ByRef lsFileVersionInfo Returns Boolean
         Boolean bOk
         Integer iErrorNumber iStatus
@@ -1282,6 +1323,7 @@ Class cFilesystem is a cObject
     End_Function
         
     {Visibility = Private}
+    // ToDo: Test
     Function _FileVersion String sFilename tsFileVersionInfo ByRef lsFileVersionInfo Returns Integer
         tsVS_FIXEDFILEINFO lsFIXEDFILEINFO
         UInteger iBytesNeeded
@@ -1370,6 +1412,7 @@ Class cFilesystem is a cObject
 
     
     // Returns the files status for the readonly attribute.
+    // ToDo: Test
     Function FileReadOnly String sFilename Returns Boolean
         Integer iFileAttributes
         Boolean bReadonly
@@ -1382,6 +1425,7 @@ Class cFilesystem is a cObject
     
     
     // Sets the files status for the readonly attribute.
+    // ToDo: Test
     Procedure Set FileReadOnly String sFilename Boolean bProtected
         Integer iFileAttributes
         Get FileAttributes sFilename to iFileAttributes
@@ -1398,6 +1442,7 @@ Class cFilesystem is a cObject
     
     
     // Returns the files status for the hidden attribute.
+    // ToDo: Test
     Function FileHidden String sFilename Returns Boolean
         Integer iFileAttributes
         Boolean bHidden
@@ -1410,6 +1455,7 @@ Class cFilesystem is a cObject
     
     
     // Sets the files status for the hidden attribute.
+    // ToDo: Test
     Procedure Set FileHidden String sFilename Boolean bProtected
         Integer iFileAttributes
         Get FileAttributes sFilename to iFileAttributes
@@ -1427,6 +1473,7 @@ Class cFilesystem is a cObject
     
     // Returns all the attributes of the file.
     // Returns -1 if the attributes could not be retrived.
+    // ToDo: Test
     Function FileAttributes String sFilename Returns Integer
         Integer iFileAttributes
         tsSearchResult[] lsSearchResult
@@ -1442,6 +1489,7 @@ Class cFilesystem is a cObject
 
 
     // Sets all the attributes of the file.
+    // ToDo: Test
     Procedure Set FileAttributes String sFilename Integer iAttributes
         Boolean bOk
         Integer iErrorNumber
@@ -1457,6 +1505,7 @@ Class cFilesystem is a cObject
     
     
     // Convert an short integer to a 4-character hex string.
+    // ToDo: Test
     Function ShortToHex Short siValue Returns String
         String sHex
         Move "" to sHex
@@ -1470,6 +1519,7 @@ Class cFilesystem is a cObject
 
 
     {Visibility = Private}
+    // ToDo: Test
     Function VerQueryValueStringFileInfo Address aBuffer String sInfoName tsLandAndCodePage lsLandAndCodePage Returns String
         String sSubBlock
         String sValue
@@ -1491,6 +1541,7 @@ Class cFilesystem is a cObject
     
     // Returns the file extention without the leading "."
     // Example sFile = "x:\text.txt". The function returns "txt".
+    // ToDo: Test
     Function FileExtention String sFilename Returns String
         String sExtention
         Integer iPos
@@ -1508,6 +1559,7 @@ Class cFilesystem is a cObject
     // Gets a handle to an icon stored as a resource in a file or an icon 
     // stored in a file's associated executable file.
     // When the icon handle is no longer needed, close it by using the DestroyFileIcon procedure.
+    // ToDo: Test
     Function FileIcon String sFilename Returns Handle
         Handle hIcon    
         Integer iIcon 
@@ -1522,6 +1574,7 @@ Class cFilesystem is a cObject
     
     // Returns the file name without the path.
     // Example sFilename = "x:\PathToFile\File.txt". The function returns "File.txt".
+    // ToDo: Test
     Function FileName String sFilename Returns String
         String sFilenameOnly sDirSep
         Integer iPos
@@ -1536,6 +1589,7 @@ Class cFilesystem is a cObject
     
     // Returns the file path without the filename. Does not return ending directory separator.
     // Example sFilename = "x:\PathToFile\File.txt". The function returns "x:\PathToFile".
+    // ToDo: Test
     Function FilePath String sFilename Returns String
         String sPathOnly sDirSep
         Integer iPos
@@ -1550,6 +1604,7 @@ Class cFilesystem is a cObject
     
     // Returns the full path and file name of the specified file.
     // This takes the relative path build from the current application path.
+    // ToDo: Test
     Function FullPathName String sFilename Returns String
         String sAppPath sFullPath sOldCurrentDir
         String sBuffer sFilenameANSI
@@ -1583,6 +1638,7 @@ Class cFilesystem is a cObject
     
     
     // Destroy hIcon, created from FileIcon.
+    // ToDo: Test
     Procedure DestroyFileIcon Handle hIcon
         Integer iResult
         If (hIcon <> 0) Begin
@@ -1600,6 +1656,7 @@ Class cFilesystem is a cObject
     // If bReturnOnlyOne is true and no items where found no error is shown.
     // If bSkipRelativePaths is true and iMode = DIRMODE_DIRECTORIES_ONLY or DIRMODE_FILES_AND_DIRECTORIES search results that contains 
     //  "." or ".." are not returned in the array.
+    // ToDo: Test
     Function FileSearch String sFilePathMask Integer iFileDirMode Boolean bReturnOnlyOne Boolean bSkipRelativePaths Returns tsSearchResult[]
         tsSearchResult[] lsSearchResult
         Integer iSearchResultCount iMode iErrorNumber
@@ -1678,6 +1735,7 @@ Class cFilesystem is a cObject
     // iMode = DIRMODE_FILES_ONLY
     // iMode = DIRMODE_DIRECTORIES_ONLY
     // iMode = DIRMODE_FILES_AND_DIRECTORIES (default)
+    // ToDo: Test
     Function FileSearchRecursive String sFilePathMask Integer iFileDirMode Boolean bReturnOnlyOne Returns tsSearchResult[]
         Integer iMode
         Boolean bOnlyOne
@@ -1691,6 +1749,7 @@ Class cFilesystem is a cObject
     End_Function
     
     
+    // ToDo: Test
     // Private
     {Visibility = Private}
     Function FileSearchRecursivePriv String sFilePathMask Integer iFileDirMode Boolean bReturnOnlyOne tsSearchResult[] ByRef lsFinalResult Returns tsSearchResult[]
@@ -1747,6 +1806,7 @@ Class cFilesystem is a cObject
     // Use:
     // Get ListOfFiles "path1;path2" "*.txt;*.asc"
     // This will return all the .txt and .asc files with full path that exists in path1 and path2.
+    // ToDo: Test
     Function ListOfFiles String sSearchPaths String sSearchFiles Returns String[]
         String[] saFileList                    
         Integer iFilelistCount iSearchFilesCount iCurSearchFile
@@ -1779,6 +1839,7 @@ Class cFilesystem is a cObject
 
 
     // Get Windows Temp path
+    // ToDo: Test
     Function FileTempPath Returns String
         String sTempPath
         Integer iRetVal
@@ -1800,6 +1861,7 @@ Class cFilesystem is a cObject
     // not argumented the TEMP enviroment variable is used. If that is also not
     // available the current directory is used.
     // You can prefix the first 3 letters of the filename with sPrefix.
+    // ToDo: Test
     Function FileTempFileName String sPathName String sPrefix Returns String
         String sPathNameTmp sPrefixTmp sTempFileName
         Boolean bOk
@@ -1827,6 +1889,7 @@ Class cFilesystem is a cObject
 
     // Creates a new directory.
     // Returns True if succeeds.
+    // ToDo: Test
     Function DirectoryCreate String sDirectoryName Returns Boolean
         String sDirectorynameANSI
         Boolean bFound bOk
@@ -1849,6 +1912,7 @@ Class cFilesystem is a cObject
 
     // Removes an existing empty directory.
     // Returns True if succeeds.
+    // ToDo: Test
     Function DirectoryRemove String sDirectoryName Returns Boolean
         String sDirectorynameANSI
         Boolean bFound bOk
@@ -1871,6 +1935,7 @@ Class cFilesystem is a cObject
     
     // Removes a directory and all its contents.
     // Returns true on succes.
+    // ToDo: Test
     Function DirectoryRemoveRecursive String sDirectoryName Returns Boolean
         tsSearchResult[] alsSearchResults
         Integer iIndex
@@ -1899,6 +1964,7 @@ Class cFilesystem is a cObject
 
     
     // Returns true if the directory does not contain any subdirectories or files.
+    // ToDo: Test
     Function IsDirectoryEmpty String sDirectoryName Returns Boolean
         tsSearchResult[] alsSearchResults
         Boolean bEmpty
@@ -1911,6 +1977,7 @@ Class cFilesystem is a cObject
 
     // Converts the filetime in UTC and returns a datetime in local time.
     // private
+    // ToDo: Test
     Function ConvertFileTileToLocalDateTime UBigInt ubiFileTime Returns DateTime
         Boolean bOk
         UBigInt ubiZero
@@ -1939,6 +2006,7 @@ Class cFilesystem is a cObject
 
     
     // Returns the filename with full path where the casing is preserved from windows.
+    // ToDo: Test
     Function FilePreservedFilename String sFilename Returns String
         Integer iNumOfDirectories iCurrentDirectory iSearchMode
         String sPreservedFilename sCurDir sSearchName
@@ -1978,6 +2046,7 @@ Class cFilesystem is a cObject
 
     // Returns the number of fields present in a string of fields seperated by a delimiter.  
     // If sDelimiter is not applied the ";" will be used.
+    // ToDo: Test
     Function CountOfFields String sFields String sDelimiter Returns Integer
         Integer iChar icChar iField                                
         String sDlm
@@ -1994,6 +2063,7 @@ Class cFilesystem is a cObject
 
     // Returns a field from a string containing multiple delimited fields. 
     // Index is 1-based.
+    // ToDo: Test
     Function FieldAtIndex String sFields Integer iIndex String sDelimiter Returns String
         Integer iChar iField iPos
         String sField sDlm
@@ -2014,6 +2084,7 @@ Class cFilesystem is a cObject
     
     // Removes the file extention from the sFile string and returns the extention including "."
     // Example sFile = "x:\text.txt". The function returns ".txt" and sFile = "x:\text".
+    // ToDo: Test
     Function RemoveExtention String ByRef sFilename Returns String
         String sExtention
         Integer iLengthExtention
@@ -2028,6 +2099,7 @@ Class cFilesystem is a cObject
 
     // Add a directory separator if it is not present.
     // Example sFoldername = "x:\FolderA". The function returns "x:\FolderA\"
+    // ToDo: Test
     Function AddFolderSeperator String sFolderName Returns String
         String sDirSep
         Move (SysConf(SYSCONF_DIR_SEPARATOR)) to sDirSep
@@ -2041,6 +2113,7 @@ Class cFilesystem is a cObject
     
     // Removes a directory separator if it is present.
     // Example sFoldername = "x:\FolderA\". The function returns "x:\FolderA"
+    // ToDo: Test
     Function RemoveFolderSeperator String sFolderName Returns String
         String sDirSep
         Move (SysConf(SYSCONF_DIR_SEPARATOR)) to sDirSep
@@ -2054,6 +2127,7 @@ Class cFilesystem is a cObject
     
     // Changes all invalid chacters in sFilename with sReplaceCharacter according to Naming Conventions.
     // sReplacecharacter has to be a valid chararacter.
+    // ToDo: Test
     Function ValidFileName String sFilename String sReplaceCharacter Returns String
         String sValidFilename
         Integer iAscii 
@@ -2100,6 +2174,7 @@ Class cFilesystem is a cObject
     
 
     // Fetch the error message from the system message table using the default language.
+    // ToDo: Test
     Procedure DoShowError Integer iErrorNumber String sAppendErrorText
         Pointer lpOut lpOutText
         Integer iRetChars iRetVal iMaxFiles
@@ -2125,6 +2200,7 @@ Class cFilesystem is a cObject
 
     // Shows a warning message to user with OK button and a exclamation icon.
     // private
+    // ToDo: Test
     Procedure warning_box String sWngMsg
         Integer iVoid
         Boolean bSendVdfError
@@ -2138,6 +2214,7 @@ Class cFilesystem is a cObject
     // Fetch the filename from the list of filenames associated with a filenumber.
     // This function is used for reporting filenames during an error.
     // private
+    // ToDo: Test
     Function FileErrorText Integer iFilenumber Returns String
         String sErrorText
         structFile[] lsFile
@@ -2154,8 +2231,8 @@ Class cFilesystem is a cObject
         Integer iFilenumber
         Get BinaryFileNextFilenumber to iFilenumber
         Get BinaryFileOpen iFilenumber sFile False True to bOk        
-        Get BinaryFileWrite iFilenumber (&sString) to bOk        
-        Set BinaryFileEndOfFile iFilenumber to (Length(sString))        
+        Get BinaryFileWriteText iFilenumber (&sString) to bOk        
+        Set BinaryFileEndOfFile iFilenumber to (SizeOfString(sString))        
         Get BinaryFileClose iFilenumber to bOk
     End_Procedure
 
