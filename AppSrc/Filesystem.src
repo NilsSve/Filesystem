@@ -1,0 +1,16 @@
+﻿Use DFAllEnt.pkg
+
+Object oApplication is a cApplication
+End_Object
+
+Object oMain is a Panel
+    Set Label To "My Project"
+    Set Location to 4 3
+    Set Size to 300 450
+
+    Object oClientArea is a ClientArea
+    End_Object
+
+End_Object
+
+Start_UI
