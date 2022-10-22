@@ -13,6 +13,7 @@ Object oMain is a Panel
     Set Size to 300 450
 
     Object oClientArea is a ClientArea
+        Use Maintest.vw
     End_Object
 
 End_Object
