@@ -458,19 +458,24 @@ Class cFilesystem is a cObject
 
 
     // Returns the next available filenumber for a binary file.
-    // ToDo: Test
     Function BinaryFileNextFilenumber Returns Integer
-        structFile[] lsFile
+        structFile[] lsaFile
         Integer iMaxFiles iCurrentFile iNextFileNumber
-        Get plsaFile to lsFile
-        Move (SizeOfArray(lsFile)) to iMaxFiles
+        Get plsaFile to lsaFile
+        Move (SizeOfArray(lsaFile)) to iMaxFiles
         Move -1 to iNextFileNumber
         Move 0 to iCurrentFile
         While (iCurrentFile < iMaxFiles and iNextFileNumber = -1)
-            If (lsFile[iCurrentFile].hFilehandle = 0) Move iCurrentFile to iNextFileNumber
-            Else Increment iCurrentFile
+            If (lsaFile[iCurrentFile].hFilehandle = 0) Begin
+                Move iCurrentFile to iNextFileNumber
+            End
+            Else Begin
+                Increment iCurrentFile
+            End
         Loop
-        If (iNextFileNumber = -1) Move iMaxFiles to iNextFileNumber
+        If (iNextFileNumber = -1) Begin
+            Move iMaxFiles to iNextFileNumber
+        End
         Function_Return iNextFileNumber
     End_Function
     
