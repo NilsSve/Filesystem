@@ -125,6 +125,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oSearchfilerecursivebn is a Button
+            Set Size to 14 77
+            Set Location to 18 123
+            Set Label to "Search file recursive"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoSearchFileRecursive
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -243,6 +255,15 @@ Object oMaintest is a dbView
         tsSearchResult[] lsaResult
         Get Value of oTestFile to sValue
         Get FileSearch of oFilesystem sValue to lsaResult
+        Send Info_Box (SFormat("Found: %1", SizeOfArray(lsaResult)))
+    End_Procedure
+
+    Procedure DoSearchFileRecursive
+        String sValue
+        Boolean bOk
+        tsSearchResult[] lsaResult
+        Get Value of oTestFile to sValue
+        Get FileSearchRecursive of oFilesystem sValue to lsaResult
         Send Info_Box (SFormat("Found: %1", SizeOfArray(lsaResult)))
     End_Procedure
     

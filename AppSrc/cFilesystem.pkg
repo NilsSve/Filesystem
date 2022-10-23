@@ -1829,22 +1829,26 @@ Class cFilesystem is a cObject
     // iMode = DIRMODE_FILES_ONLY
     // iMode = DIRMODE_DIRECTORIES_ONLY
     // iMode = DIRMODE_FILES_AND_DIRECTORIES (default)
-    // ToDo: Test
     Function FileSearchRecursive String sFilePathMask Integer iFileDirMode Boolean bReturnOnlyOne Returns tsSearchResult[]
         Integer iMode
         Boolean bOnlyOne
         tsSearchResult[] lsFinalResult lsSearchResult
-        If (num_arguments < 2) Move DIRMODE_FILES_AND_DIRECTORIES to iMode
-        Else Move iFileDirMode to iMode
-        If (num_arguments < 3) Move False to bOnlyOne
-        Else Move bReturnOnlyOne to bOnlyOne
+        If (num_arguments < 2) Begin
+            Move DIRMODE_FILES_AND_DIRECTORIES to iMode
+        End
+        Else Begin
+            Move iFileDirMode to iMode
+        End
+        If (num_arguments < 3) Begin
+            Move False to bOnlyOne
+        End
+        Else Begin
+            Move bReturnOnlyOne to bOnlyOne
+        End
         Get FileSearchRecursivePriv sFilePathMask iMode bOnlyOne (&lsFinalResult) to lsSearchResult
         Function_Return lsFinalResult
     End_Function
     
-    
-    // ToDo: Test
-    // Private
     {Visibility = Private}
     Function FileSearchRecursivePriv String sFilePathMask Integer iFileDirMode Boolean bReturnOnlyOne tsSearchResult[] ByRef lsFinalResult Returns tsSearchResult[]
         tsSearchResult[] lsSearchResultDir lsSearchResult
