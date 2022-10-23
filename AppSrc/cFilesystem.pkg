@@ -272,8 +272,8 @@ External_Function fsGetTempPath "GetTempPathA" Kernel32.Dll ;
     Pointer lpBuffer ;
     Returns Integer
 
-External_Function fsSetFileAttributes "SetFileAttributesA" Kernel32.dll ;
-    Pointer lpFileName ;
+External_Function fsSetFileAttributes "SetFileAttributesW" Kernel32.dll ;
+    WString lpFileName ;
     DWord dwFileAttributes ;
     Returns Boolean
 
@@ -1502,7 +1502,6 @@ Class cFilesystem is a cObject
     
     
     // Returns the files status for the readonly attribute.
-    // ToDo: Test
     Function FileReadOnly String sFilename Returns Boolean
         Integer iFileAttributes
         Boolean bReadonly
@@ -1515,7 +1514,6 @@ Class cFilesystem is a cObject
     
     
     // Sets the files status for the readonly attribute.
-    // ToDo: Test
     Procedure Set FileReadOnly String sFilename Boolean bProtected
         Integer iFileAttributes
         Get FileAttributes sFilename to iFileAttributes
@@ -1532,7 +1530,6 @@ Class cFilesystem is a cObject
     
     
     // Returns the files status for the hidden attribute.
-    // ToDo: Test
     Function FileHidden String sFilename Returns Boolean
         Integer iFileAttributes
         Boolean bHidden
@@ -1545,7 +1542,6 @@ Class cFilesystem is a cObject
     
     
     // Sets the files status for the hidden attribute.
-    // ToDo: Test
     Procedure Set FileHidden String sFilename Boolean bProtected
         Integer iFileAttributes
         Get FileAttributes sFilename to iFileAttributes
@@ -1563,7 +1559,6 @@ Class cFilesystem is a cObject
     
     // Returns all the attributes of the file.
     // Returns -1 if the attributes could not be retrived.
-    // ToDo: Test
     Function FileAttributes String sFilename Returns Integer
         Integer iFileAttributes
         tsSearchResult[] lsSearchResult
@@ -1579,17 +1574,16 @@ Class cFilesystem is a cObject
 
 
     // Sets all the attributes of the file.
-    // ToDo: Test
     Procedure Set FileAttributes String sFilename Integer iAttributes
         Boolean bOk
         Integer iErrorNumber
-        Move (ToANSI(sFilename)) to sFilename
-        Move (sFilename + (Character(0))) to sFilename
         Move False to bOk
-        Move (fsSetFileAttributes(AddressOf(sFilename), iAttributes)) to bOk
+        Move (fsSetFileAttributes(sFilename, iAttributes)) to bOk
         If (not(bOk)) Begin
             Move (fsGetLastError()) to iErrorNumber
-            If iErrorNumber Send DoShowError iErrorNumber ("Tried to set fileattributes for file: "+sFilename)
+            If iErrorNumber Begin
+                Send DoShowError iErrorNumber ("Tried to set fileattributes for file: "+sFilename)
+            End
         End
     End_Procedure
     

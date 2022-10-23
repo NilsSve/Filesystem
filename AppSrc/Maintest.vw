@@ -203,6 +203,17 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oFileReadOnlybn is a Button
+            Set Location to 72 14
+            Set Label to "File read only"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileReadOnly
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -381,5 +392,16 @@ Object oMaintest is a dbView
         Get FileVersion of oFilesystem sValue (&lsFileversion) to bOk
         Send Info_Box (SFormat("Result: %1", If(bOk, "ok", "not ok")))
     End_Procedure    
+    
+    Procedure DoFileReadOnly
+        String sValue
+        Boolean bReadOnly
+        Get Value of oTestFile to sValue
+        Get FileReadOnly of oFilesystem sValue to bReadOnly
+        Send Info_Box (SFormat("Result: %1", If(bReadOnly, "read only", "write enabled")))
+        Set FileReadOnly of oFilesystem sValue to (not(bReadOnly))
+        Get FileReadOnly of oFilesystem sValue to bReadOnly
+        Send Info_Box (SFormat("Changed to: %1", If(bReadOnly, "read only", "write enabled")))
+    End_Procedure
     
 End_Object
