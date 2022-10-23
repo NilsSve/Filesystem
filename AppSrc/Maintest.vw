@@ -103,9 +103,20 @@ Object oMaintest is a dbView
         Set Size to 100 269
         Set Location to 134 15
         Set Label to "File methods"
+
+        Object oButton2 is a Button
+            Set Location to 18 14
+            Set Label to "File exist"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileExist
+            End_Procedure
+        
+        End_Object
     End_Object
 
-    
+    // Binary file
     Procedure CreateTextFile
         String sFile
         Get Value of oTestFile to sFile
@@ -206,4 +217,13 @@ Object oMaintest is a dbView
         End
     End_Procedure
 
+    // File methods
+    Procedure DoFileExist
+        String sValue
+        Boolean bOk
+        Get Value of oTestFile to sValue
+        Get FileExists of oFilesystem sValue to bOk
+        Send Info_Box (SFormat("Result: %1", If(bOk, "found", "not found")))
+    End_Procedure
+    
 End_Object

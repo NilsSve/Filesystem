@@ -71,9 +71,11 @@ Define ERROR_NO_MORE_FILES    for |CI18
 Define ERROR_MOD_NOT_FOUND    for |CI126
 #ENDIF
 
-// ToDo: Examine if this is still the same when dealing with unicode versions.
 #IFNDEF MAX_PATH
 Define MAX_PATH               for 260
+#ENDIF
+#IFNDEF MAX_ALTPATH
+Define MAX_ALTPATH            for 14
 #ENDIF
 
 #IFNDEF FILE_ATTRIBUTE_READONLY
@@ -169,6 +171,7 @@ Define FS_BUFFERSIZE for |CI$2000
 // Functions that needs variables for output are made global stings or
 // integers, and can be found on top of the declaration.
 //************************************************************************
+// ToDo: With 64 bit check for alignment.
 External_Function fsCreatefile "CreateFileW" kernel32.dll ;
     WString lpFile ;      // filename
     DWord dwDesAccess ;   // access mode
@@ -232,9 +235,9 @@ External_Function fsCopyFile "CopyFileA" Kernel32.Dll ;
     Boolean bFailIfExists ;         // If bFailIfExists is TRUE and the new file specified by lpNewFileName already exists, the function fails.
     Returns Integer                 // If bFailIfExists is FALSE and the new file already exists, the function overwrites the existing file and succeeds.
 
-External_Function fsFindFirstFile "FindFirstFileA" Kernel32.Dll ;
-    Pointer lpFileName ;            // Pointer to a null-terminated string that specifies a valid directory or path and file name, which can contain wildcard characters (* and ?).
-    Pointer lpWin32_Find_Data ;     // Pointer to the WIN32_FIND_DATA structure that receives information about the found file or subdirectory.
+External_Function fsFindFirstFile "FindFirstFileW" Kernel32.Dll ;
+    WString lpFileName ;            // Pointer to a null-terminated string that specifies a valid directory or path and file name, which can contain wildcard characters (* and ?).
+    Pointer lpWin32_Find_Data ;     // Pointer to the WIN32_FIND_DATAW structure that receives information about the found file or subdirectory.
     Returns Integer
 
 External_Function fsFindNextFile "FindNextFileA" Kernel32.Dll ;
@@ -322,7 +325,7 @@ External_Function fsGetFullPathName "GetFullPathNameA" Kernel32.dll ;
 //************************************************************************
 // Structures
 //************************************************************************
-Struct structWFD  // Used by FindFirstFile
+Struct structWFDW
     DWord dwFileAttributes 
     UBigInt ftCreationDateTime
     UBigInt ftLastAccessDateTime 
@@ -331,8 +334,8 @@ Struct structWFD  // Used by FindFirstFile
     UInteger nFileSizeLow 
     DWord dares
     DWord dbres
-    UChar[MAX_PATH] cFileName    
-    UChar[14] cAlternateFileName   
+    UShort[MAX_PATH] cFileName    
+    UShort[MAX_ALTPATH] cAlternateFileName   
 End_Struct
 
 Struct structSystemTime
@@ -1228,10 +1231,16 @@ Class cFilesystem is a cObject
         tsSearchResult[] lsResult
         Move False to bFound
         Set pbError to False
-        If (num_arguments < 2) Move DIRMODE_FILES_ONLY to iMode
-        Else Move iFileDirMode to iMode
+        If (num_arguments < 2) Begin
+            Move DIRMODE_FILES_ONLY to iMode
+        End
+        Else Begin
+            Move iFileDirMode to iMode
+        End
         Get FileSearch sFilePathMask iMode True to lsResult
-        If (SizeOfArray(lsResult) > 0) Move True to bFound
+        If (SizeOfArray(lsResult) > 0) Begin
+            Move True to bFound
+        End
         Function_Return bFound
     End_Function       
     
@@ -1721,36 +1730,52 @@ Class cFilesystem is a cObject
     // ToDo: Test
     Function FileSearch String sFilePathMask Integer iFileDirMode Boolean bReturnOnlyOne Boolean bSkipRelativePaths Returns tsSearchResult[]
         tsSearchResult[] lsSearchResult
-        Integer iSearchResultCount iMode iErrorNumber
-        structWFD lsFindData
-        String sTempFilename sFilePathMaskANSI
+        Integer iSearchResultCount iMode iErrorNumber iFileNameOffset iAltFileNameOffset
+        structWFDW lsFindData
+        String sTempFilename
         Handle hFindFile
         Boolean bError bStop bFound bOk bOnlyOne bNoRelativePaths
         BigInt biBigHi
-        Address aFileName
-        If (num_arguments < 2) Move DIRMODE_FILES_AND_DIRECTORIES to iMode
-        Else Move iFileDirMode to iMode
-        If (num_arguments < 3) Move False to bOnlyOne
-        Else Move bReturnOnlyOne to bOnlyOne
-        If (num_arguments < 4) Move False to bNoRelativePaths
-        Else Move bSkipRelativePaths to bNoRelativePaths
-        // ToDo: Test med æøåÆØÅ
-        Move (Utf8ToAnsi(sFilePathMask)) to sFilePathMaskANSI
+        Pointer lpFindData
+        If (num_arguments < 2) Begin
+            Move DIRMODE_FILES_AND_DIRECTORIES to iMode
+        End
+        Else begin
+            Move iFileDirMode to iMode
+        End
+        If (num_arguments < 3) Begin
+            Move False to bOnlyOne
+        End
+        Else Begin
+            Move bReturnOnlyOne to bOnlyOne
+        End
+        If (num_arguments < 4) Begin
+            Move False to bNoRelativePaths
+        End
+        Else Begin
+            Move bSkipRelativePaths to bNoRelativePaths
+        End
         Move 0 to lsFindData.dwFileAttributes   // Initialize lsFindData
-        Move (fsFindFirstFile(AddressOf(sFilePathMaskANSI), AddressOf(lsFindData))) to hFindFile
+        Move (fsFindFirstFile(sFilePathMask, AddressOf(lsFindData))) to hFindFile
         If (hFindFile <> INVALID_HANDLE_VALUE) Begin
             Move False to bError
             Move False to bStop
             Move (2^32) to biBigHi
+            Move (SizeOfType(structWFDW) - (MAX_PATH * 2) - (MAX_ALTPATH * 2)) to iFileNameOffset
+            Move (SizeOfType(structWFDW) - (MAX_ALTPATH * 2)) to iAltFileNameOffset
             Set pbError to bError
             While (bError = False and bStop = False) 
                 Move False to bFound
                 Case Begin
                     Case (iMode = DIRMODE_FILES_ONLY)
-                        If (lsFindData.dwFileAttributes iand FILE_ATTRIBUTE_DIRECTORY = 0) Move True to bFound
+                        If (lsFindData.dwFileAttributes iand FILE_ATTRIBUTE_DIRECTORY = 0) Begin
+                            Move True to bFound
+                        End
                         Case Break
                     Case (iMode = DIRMODE_DIRECTORIES_ONLY)
-                        If (lsFindData.dwFileAttributes iand FILE_ATTRIBUTE_DIRECTORY = FILE_ATTRIBUTE_DIRECTORY) Move True to bFound
+                        If (lsFindData.dwFileAttributes iand FILE_ATTRIBUTE_DIRECTORY = FILE_ATTRIBUTE_DIRECTORY) Begin
+                            Move True to bFound
+                        End
                         Case Break
                      Case Else
                         Move True to bFound
@@ -1758,30 +1783,39 @@ Class cFilesystem is a cObject
                 Case End
                 If (bFound = True and iMode <> DIRMODE_FILES_ONLY) Begin
                     If (bFound = True and bNoRelativePaths = True) Begin
-                        If (lsFindData.cFileName[0] = 46 and lsFindData.cFileName[1] = 0) Move False to bFound
-                        Else If (lsFindData.cFileName[0] = 46 and lsFindData.cFileName[1] = 46 and lsFindData.cFileName[2] = 0) Move False to bFound
+                        // ToDo: Test
+                        If (lsFindData.cFileName[0] = 46 and lsFindData.cFileName[1] = 0) Begin
+                            Move False to bFound
+                        End
+                        Else If (lsFindData.cFileName[0] = 46 and lsFindData.cFileName[1] = 46 and lsFindData.cFileName[2] = 0) Begin
+                             Move False to bFound
+                        End
                     End
                 End
                 If bFound Begin
-                    // ToDo: Test med æøåÆØÅ
-                    Move (PointerToString(AddressOf(lsFindData.cFileName))) to lsSearchResult[iSearchResultCount].sFilename
-                    Move (AnsiToUtf8(lsSearchResult[iSearchResultCount].sFilename)) to lsSearchResult[iSearchResultCount].sFilename
-                    Move (PointertoString(AddressOf(lsFindData.cAlternateFileName))) to lsSearchResult[iSearchResultCount].sAlternateFileName
-                    Move (AnsiToUtf8(lsSearchResult[iSearchResultCount].sAlternateFileName)) to lsSearchResult[iSearchResultCount].sAlternateFileName
+                    Move (AddressOf(lsFindData)) to lpFindData
+                    Move (PointerToWString(lpFindData + iFileNameOffset)) to lsSearchResult[iSearchResultCount].sFilename // Autoconvert from wstring to string.
+                    Move (PointerToWString(lpFindData + iAltFileNameOffset)) to lsSearchResult[iSearchResultCount].sAlternateFileName   // Autoconvert from wstring to string.
                     Move lsFindData.dwFileAttributes to lsSearchResult[iSearchResultCount].iFileAttributes
                     Get ConvertFileTileToLocalDateTime lsFindData.ftCreationDateTime to lsSearchResult[iSearchResultCount].dtCreationDateTime
                     Get ConvertFileTileToLocalDateTime lsFindData.ftLastAccessDateTime to lsSearchResult[iSearchResultCount].dtLastAccessDateTime
                     Get ConvertFileTileToLocalDateTime lsFindData.ftLastWriteDateTime to lsSearchResult[iSearchResultCount].dtLastWriteDateTime
                     Move ((lsFindData.nFileSizeHigh * biBigHi) + lsFindData.nFileSizeLow) to lsSearchResult[iSearchResultCount].biFileSize
                     Increment iSearchResultCount 
-                    If bOnlyOne Move True to bStop
+                    If (bOnlyOne) Begin
+                        Move True to bStop
+                    End
                 End
-                If (bStop = False) Move (fsFindNextFile(hFindFile, AddressOf(lsFindData))) to bOk
+                If (bStop = False) Begin
+                    Move (fsFindNextFile(hFindFile, AddressOf(lsFindData))) to bOk
+                End
                 If (bOk = False) Begin
                     Move True to bStop
                     If (bOnlyOne = False) Begin
                         Move (fsGetLastError()) to iErrorNumber
-                        If (iErrorNumber <> ERROR_NO_MORE_FILES and iErrorNumber <> ERROR_MOD_NOT_FOUND and iErrorNumber <> 0) Send DoShowError iErrorNumber ("Search path: "+sFilePathMask)
+                        If (iErrorNumber <> ERROR_NO_MORE_FILES and iErrorNumber <> ERROR_MOD_NOT_FOUND and iErrorNumber <> 0) Begin
+                            Send DoShowError iErrorNumber ("Search path: "+sFilePathMask)
+                        End
                     End
                 End
                 Get pbError to bError
