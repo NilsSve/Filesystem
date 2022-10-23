@@ -6,6 +6,6 @@ ConfigFile=.\Programs\Config.ws
 DefaultFormHeight=12
 [Conditionals]
 Is$WebApp=False
-Is$Win64=False
+Is$Win64=True
 [Projects]
 Project0=Filesystem.src

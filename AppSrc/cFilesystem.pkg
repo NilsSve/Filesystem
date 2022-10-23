@@ -161,6 +161,8 @@ Enum_List
     Define DIRMODE_FILES_AND_DIRECTORIES
 End_Enum_List
 
+Define FS_BUFFERSIZE for |CI$2000
+
 //************************************************************************
 // Declarations of external functions.
 // Functions that needs variables for output are made global stings or
@@ -660,10 +662,10 @@ Class cFilesystem is a cObject
                 End
                 Repeat
                     If (lsaFileBufferPointer[iFilenumber].iBufferPointer > lsaFileBufferPointer[iFilenumber].iBufferSize) Begin
-                        Get_Argument_Size to iBuffersize
+                        Move FS_BUFFERSIZE to iBuffersize
                         Get BinaryFilePosition iFilenumber to lsaFileBufferPointer[iFilenumber].biFromFilePosition
-                        // ToDo: Fix
-                        Get BinaryFileReadText iFilenumber iBuffersize (&saCachedBuffer[iFilenumber]) to lsaFileBufferPointer[iFilenumber].iBufferSize
+                        // ToDo: Use UCHAR
+                        // Get BinaryFileReadText iFilenumber iBuffersize (&saCachedBuffer[iFilenumber]) to lsaFileBufferPointer[iFilenumber].iBufferSize
                         Move 1 to lsaFileBufferPointer[iFilenumber].iBufferPointer
                         Set psaCachedBuffer to saCachedBuffer
                     End
@@ -697,9 +699,7 @@ Class cFilesystem is a cObject
     // The end of row is indicated with sCharEOL. If that is not applied the charactersequence character(13) + character(10) is used.
     // The return string buffer would also be empty.
     // No errors occures if you try to read past end of file.
-    // To speed up reading process the buffer will be read in sizes of the current argument_size. 
-    // ToDo: Caching should be removed, as it is not needed in newer versions of windows (I think)
-    // ToDo: Also caching would give a problem with the encoded unicode characters as it might break in the middle of a unicode encoding.)
+    // To speed up reading process the buffer will be read in sizes FS_BUFFERSIZE. 
     // ToDo: Test
     Function BinaryFileReadCachedCSV Integer iFilenumber String sFieldseparator String sTextQualification String ByRef sReturnBuffer Boolean ByRef bEndOfRow Boolean ByRef bEndOfFile String sCharEOL Returns Integer
         Handle hFileHandle
@@ -825,10 +825,10 @@ Class cFilesystem is a cObject
         Integer iBufferSize
         Boolean bOk
         If (lsFileBufferPointer.iBufferPointer > lsFileBufferPointer.iBufferSize) Begin
-            Get_Argument_Size to iBufferSize
+            Move FS_BUFFERSIZE to iBufferSize
             Get BinaryFilePosition iFilenumber to lsFileBufferPointer.biFromFilePosition
-            // ToDo: Fix
-            Get BinaryFileReadText iFilenumber iBufferSize (&saCachedBuffer[iFilenumber]) to lsFileBufferPointer.iBufferSize
+            // ToDo: Use UCHAR
+            // Get BinaryFileReadText iFilenumber iBufferSize (&saCachedBuffer[iFilenumber]) to lsFileBufferPointer.iBufferSize
             Move 1 to lsFileBufferPointer.iBufferPointer
             Set psaCachedBuffer to saCachedBuffer    
         End
@@ -846,8 +846,6 @@ Class cFilesystem is a cObject
     // Data is returned without the ending sCharEOL
     // If sCharEOL is not applied the charactersequence character(13) + character(10) is used.
     // Returns True when the line has been read.
-    // ToDo: Caching should be removed, as it is not needed in newer versions of windows (I think)
-    // ToDo: Also caching would give a problem with the encoded unicode characters as it might break in the middle of a unicode encoding.)
     // ToDo: Test
     Function BinaryFileReadCachedLN Integer iFilenumber String ByRef sLine Boolean ByRef bEndOfFile String sCharEOL Returns Boolean
         Boolean bEndOfRow 
@@ -937,7 +935,6 @@ Class cFilesystem is a cObject
 
 
     // Retrives the file size from a binary file.
-    // ToDo: Test
     Function BinaryFileSize Integer iFilenumber Returns BigInt
         BigInt biFilesize
         Handle hFileHandle
@@ -951,10 +948,14 @@ Class cFilesystem is a cObject
             Move (fsGetFileSizeEx(hFileHandle, AddressOf(biFilesize))) to bOk
             If (bOk = -False) Begin
                 Move (fsGetLastError()) to iErrorNumber
-                If iErrorNumber Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
+                If iErrorNumber Begin
+                    Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
+                End
             End
         End
-        Else Send warning_box FS_FILEHANDLEMISSING
+        Else Begin
+            Send warning_box FS_FILEHANDLEMISSING
+        End
         Function_Return biFilesize
     End_Function
 
