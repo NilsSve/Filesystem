@@ -490,11 +490,11 @@ Class cFilesystem is a cObject
         Pointer lpFilenamePointer
         Integer iReturnValue iErrornumber
         DWord dwSharedMode dwCreateMode dwAccessMode
-        structFile[] lsFile
+        structFile[] lsaFile
         Boolean bOk bFilehandleOK
-        Get plsaFile to lsFile
-        If (iFilenumber < SizeOfArray(lsFile)) Begin
-            If (lsFile[iFilenumber].hFilehandle = 0) Begin
+        Get plsaFile to lsaFile
+        If (iFilenumber < SizeOfArray(lsaFile)) Begin
+            If (lsaFile[iFilenumber].hFilehandle = 0) Begin
                 Move True to bFilehandleOK
             End
         End
@@ -502,7 +502,7 @@ Class cFilesystem is a cObject
             Move True to bFilehandleOK
         End
         If bFilehandleOK Begin
-            Move sFilename to lsFile[iFilenumber].sFilename
+            Move sFilename to lsaFile[iFilenumber].sFilename
             Set pbError to False
             Move False to bOk
             Move GENERIC_RANDOM to dwAccessMode
@@ -534,9 +534,9 @@ Class cFilesystem is a cObject
                 End
             End
             Else Begin
-                Move iReturnValue to lsFile[iFilenumber].hFilehandle
-                Move False to lsFile[iFilenumber].bEndOfFile
-                Set plsaFile to lsFile
+                Move iReturnValue to lsaFile[iFilenumber].hFilehandle
+                Move False to lsaFile[iFilenumber].bEndOfFile
+                Set plsaFile to lsaFile
                 Set pbEOF to False
                 Move True to bOk
             End
@@ -553,8 +553,8 @@ Class cFilesystem is a cObject
     Function BinaryFileClose Integer iFilenumber Returns Boolean
         Integer iRetVal iErrorNumber
         Handle hHandle
-        structFile[] lsFile
-        structFileBufferPointer[] lsFileBufferPointer
+        structFile[] lsaFile
+        structFileBufferPointer[] lsaFileBufferPointer
         String[] saCachedBuffer
         Boolean bOk
         Get BinaryFileHandle iFilenumber to hHandle
@@ -569,16 +569,16 @@ Class cFilesystem is a cObject
                 End
             End
             Else Begin
-                Get plsaFile to lsFile
-                Get plsCachedPointer to lsFileBufferPointer
+                Get plsaFile to lsaFile
+                Get plsCachedPointer to lsaFileBufferPointer
                 Get psaCachedBuffer to saCachedBuffer
-                Move 0 to lsFile[iFilenumber].hFilehandle
+                Move 0 to lsaFile[iFilenumber].hFilehandle
                 Move "" to saCachedBuffer[iFilenumber]
-                Move 1 to lsFileBufferPointer[iFilenumber].iBufferPointer
-                Move 0 to lsFileBufferPointer[iFilenumber].iBufferSize
-                Move 0 to lsFileBufferPointer[iFilenumber].biFromFilePosition
-                Set plsaFile to lsFile
-                Set plsCachedPointer to lsFileBufferPointer
+                Move 1 to lsaFileBufferPointer[iFilenumber].iBufferPointer
+                Move 0 to lsaFileBufferPointer[iFilenumber].iBufferSize
+                Move 0 to lsaFileBufferPointer[iFilenumber].biFromFilePosition
+                Set plsaFile to lsaFile
+                Set plsCachedPointer to lsaFileBufferPointer
                 Set psaCachedBuffer to saCachedBuffer
                 Move True to bOk
             End
@@ -596,7 +596,7 @@ Class cFilesystem is a cObject
         Handle hFileHandle
         Integer iBytesRead iErrorNumber iNumberOfBytes
         Boolean bOk
-        structFile[] lsFile
+        structFile[] lsaFile
         String sReadBuffer
         Get BinaryFileSize iFilenumber to iNumberOfBytes
         If (iNumberOfBytes < 1) Begin
@@ -617,9 +617,9 @@ Class cFilesystem is a cObject
             End
             Else Begin
                 If (iBytesRead = iNumberOfBytes) Begin
-                    Get plsaFile to lsFile
-                    Move True to lsFile[iFilenumber].bEndOfFile
-                    Set plsaFile to lsFile
+                    Get plsaFile to lsaFile
+                    Move True to lsaFile[iFilenumber].bEndOfFile
+                    Set plsaFile to lsaFile
                     Set pbEOF to True
                 End
             End
@@ -631,48 +631,45 @@ Class cFilesystem is a cObject
     End_Function
 
 
-    // Reading from a binary file until a string of bytes are matched.
-    // The data read from the file is placed in the sReturnBuffer and the function returns the number of bytes read until the match is read including the match.
+    // Reading from a binary file as text file until a search string are matched.
+    // The text read from the file is placed in the sReturnBuffer and the function returns the number of bytes read until the match is read including the match.
     // Then the function returns 0 the end of file has been reached (pbEOF will then be true) or an error has occured (pbError will then be true).
     // The return string buffer would also be empty.
     // No errors occures if you try to read past end of file.
-    // To speed up reading process the buffer will be read in sizes of the current argument_size. 
-    // ToDo: Caching should be removed, as it is not needed in newer versions of windows (I think)
-    // ToDo: Also caching would give a problem with the encoded unicode characters as it might break in the middle of a unicode encoding.)
     // ToDo: Test
     Function BinaryFileReadCachedUntilMatch Integer iFilenumber String sMatchString String ByRef sReturnBuffer Boolean ByRef bEndOfFile Returns Integer
         Handle hFileHandle
         Integer iBuffersize iMatchPos iLengthMatch
         String sByte
-        structFile[] lsFile
-        structFileBufferPointer[] lsFileBufferPointer
+        structFile[] lsaFile
+        structFileBufferPointer[] lsaFileBufferPointer
         String[] saCachedBuffer
-        Get plsaFile to lsFile
+        Get plsaFile to lsaFile
         Move "" to sReturnBuffer
         Move 1 to iMatchPos
         Move False to bEndOfFile
-        If (iFilenumber < SizeOfArray(lsFile)) Begin
-            Move lsFile[iFilenumber].hFilehandle to hFileHandle
+        If (iFilenumber < SizeOfArray(lsaFile)) Begin
+            Move lsaFile[iFilenumber].hFilehandle to hFileHandle
             If (hFileHandle <> 0) Begin
                 Move (Length(sMatchString)) to iLengthMatch
-                Get plsCachedPointer to lsFileBufferPointer
+                Get plsCachedPointer to lsaFileBufferPointer
                 Get psaCachedBuffer to saCachedBuffer
-                If (iFilenumber >= SizeOfArray(lsFileBufferPointer)) Begin
-                    Move 1 to lsFileBufferPointer[iFilenumber].iBufferPointer
+                If (iFilenumber >= SizeOfArray(lsaFileBufferPointer)) Begin
+                    Move 1 to lsaFileBufferPointer[iFilenumber].iBufferPointer
                     Move "" to saCachedBuffer[iFilenumber]
                 End
                 Repeat
-                    If (lsFileBufferPointer[iFilenumber].iBufferPointer > lsFileBufferPointer[iFilenumber].iBufferSize) Begin
+                    If (lsaFileBufferPointer[iFilenumber].iBufferPointer > lsaFileBufferPointer[iFilenumber].iBufferSize) Begin
                         Get_Argument_Size to iBuffersize
-                        Get BinaryFilePosition iFilenumber to lsFileBufferPointer[iFilenumber].biFromFilePosition
+                        Get BinaryFilePosition iFilenumber to lsaFileBufferPointer[iFilenumber].biFromFilePosition
                         // ToDo: Fix
-                        Get BinaryFileReadText iFilenumber iBuffersize (&saCachedBuffer[iFilenumber]) to lsFileBufferPointer[iFilenumber].iBufferSize
-                        Move 1 to lsFileBufferPointer[iFilenumber].iBufferPointer
+                        Get BinaryFileReadText iFilenumber iBuffersize (&saCachedBuffer[iFilenumber]) to lsaFileBufferPointer[iFilenumber].iBufferSize
+                        Move 1 to lsaFileBufferPointer[iFilenumber].iBufferPointer
                         Set psaCachedBuffer to saCachedBuffer
                     End
-                    If (lsFileBufferPointer[iFilenumber].iBufferPointer =< lsFileBufferPointer[iFilenumber].iBufferSize) Begin
-                        Move (Mid(saCachedBuffer[iFilenumber], 1, lsFileBufferPointer[iFilenumber].iBufferPointer)) to sByte
-                        Increment lsFileBufferPointer[iFilenumber].iBufferPointer
+                    If (lsaFileBufferPointer[iFilenumber].iBufferPointer =< lsaFileBufferPointer[iFilenumber].iBufferSize) Begin
+                        Move (Mid(saCachedBuffer[iFilenumber], 1, lsaFileBufferPointer[iFilenumber].iBufferPointer)) to sByte
+                        Increment lsaFileBufferPointer[iFilenumber].iBufferPointer
                         Move (sReturnBuffer + sByte) to sReturnBuffer
                         If (sByte = Mid(sMatchString, 1, iMatchPos)) Begin
                             Increment iMatchPos
@@ -681,10 +678,10 @@ Class cFilesystem is a cObject
                             Move 1 to iMatchPos
                         End
                     End
-                Until (iMatchPos > iLengthMatch or lsFileBufferPointer[iFilenumber].iBufferSize = 0)   
-                Set plsCachedPointer to lsFileBufferPointer
-                If (lsFileBufferPointer[iFilenumber].iBufferSize = 0) Begin
-                    Move lsFile[iFilenumber].bEndOfFile to bEndOfFile
+                Until (iMatchPos > iLengthMatch or lsaFileBufferPointer[iFilenumber].iBufferSize = 0)   
+                Set plsCachedPointer to lsaFileBufferPointer
+                If (lsaFileBufferPointer[iFilenumber].iBufferSize = 0) Begin
+                    Move lsaFile[iFilenumber].bEndOfFile to bEndOfFile
                 End
             End
             Else Send warning_box FS_FILEHANDLEMISSING
@@ -708,12 +705,12 @@ Class cFilesystem is a cObject
         Handle hFileHandle
         Integer iLengthSeparator iLengthTextQualification iEOLLength iTestLength
         String sByte sEOL sTestBuffer
-        structFile[] lsFile
-        structFileBufferPointer[] lsFileBufferPointer
+        structFile[] lsaFile
+        structFileBufferPointer[] lsaFileBufferPointer
         String[] saCachedBuffer
         Boolean bInTextFieldMode bTextFieldReady bFieldSeparator bTextQualificator bEscapeTextQualificatorTest bByteOk
         BigInt biAfterTextQualificator
-        Get plsaFile to lsFile
+        Get plsaFile to lsaFile
         If (num_arguments > 6) Begin
             Move sCharEOL to sEOL
         End
@@ -728,20 +725,20 @@ Class cFilesystem is a cObject
         Move False to bEndOfRow
         Move False to bEndOfFile
         Move False to bTextQualificator
-        If (iFilenumber < SizeOfArray(lsFile)) Begin
-            Move lsFile[iFilenumber].hFilehandle to hFileHandle
+        If (iFilenumber < SizeOfArray(lsaFile)) Begin
+            Move lsaFile[iFilenumber].hFilehandle to hFileHandle
             If (hFileHandle <> 0) Begin
                 Move (Length(sFieldseparator)) to iLengthSeparator
                 Move (Length(sTextQualification)) to iLengthTextQualification
-                Get plsCachedPointer to lsFileBufferPointer
+                Get plsCachedPointer to lsaFileBufferPointer
                 Get psaCachedBuffer to saCachedBuffer
                 
-                If (iFilenumber >= SizeOfArray(lsFileBufferPointer)) Begin
-                    Move 1 to lsFileBufferPointer[iFilenumber].iBufferPointer
+                If (iFilenumber >= SizeOfArray(lsaFileBufferPointer)) Begin
+                    Move 1 to lsaFileBufferPointer[iFilenumber].iBufferPointer
                     Move "" to saCachedBuffer[iFilenumber]
                 End
                 Repeat
-                    Get NextByteCSV (&iFilenumber) (&lsFileBufferPointer[iFilenumber]) (&saCachedBuffer) (&sByte) to bByteOk
+                    Get NextByteCSV (&iFilenumber) (&lsaFileBufferPointer[iFilenumber]) (&saCachedBuffer) (&sByte) to bByteOk
                     If bByteOk Begin
                         Move (sReturnBuffer + sByte) to sReturnBuffer
                         Move (Right(sReturnBuffer, iLengthSeparator) = sFieldseparator) to bFieldSeparator
@@ -766,7 +763,7 @@ Class cFilesystem is a cObject
                                 Move True to bInTextFieldMode
                                 Move (Left(sReturnBuffer, (Length(sReturnBuffer) - iLengthTextQualification))) to sReturnBuffer
                                 Repeat
-                                    Get NextByteCSV (&iFilenumber) (&lsFileBufferPointer[iFilenumber]) (&saCachedBuffer) (&sByte) to bByteOk
+                                    Get NextByteCSV (&iFilenumber) (&lsaFileBufferPointer[iFilenumber]) (&saCachedBuffer) (&sByte) to bByteOk
                                     If bByteOk Begin
                                         Move (sReturnBuffer + sByte) to sReturnBuffer
                                         Move (Right(sReturnBuffer, iLengthTextQualification) = sTextQualification) to bTextQualificator
@@ -776,13 +773,13 @@ Class cFilesystem is a cObject
                                             // If it is, add the new buffer to the return buffer.
                                             // If not, restore the filebuffer to this position and mark the text field ended.
                                             Move (Left(sReturnBuffer, (Length(sReturnBuffer) - iLengthTextQualification))) to sReturnBuffer
-                                            Set plsCachedPointer to lsFileBufferPointer
+                                            Set plsCachedPointer to lsaFileBufferPointer
                                             Get BinaryFileCachedPosition iFilenumber to biAfterTextQualificator
                                             Move "" to sTestBuffer
                                             Move 0 to iTestLength
                                             Move True to bEscapeTextQualificatorTest
                                             Repeat
-                                                Get NextByteCSV (&iFilenumber) (&lsFileBufferPointer[iFilenumber]) (&saCachedBuffer) (&sByte) to bByteOk
+                                                Get NextByteCSV (&iFilenumber) (&lsaFileBufferPointer[iFilenumber]) (&saCachedBuffer) (&sByte) to bByteOk
                                                 If bByteOk Begin
                                                     Move (sTestBuffer + sByte) to sTestBuffer
                                                     Increment iTestLength
@@ -794,22 +791,22 @@ Class cFilesystem is a cObject
                                                     End
                                                     Else Begin
                                                         Set BinaryFileChachedPosition iFilenumber to biAfterTextQualificator
-                                                        Get plsCachedPointer to lsFileBufferPointer
+                                                        Get plsCachedPointer to lsaFileBufferPointer
                                                         Move False to bEscapeTextQualificatorTest
                                                         Move False to bInTextFieldMode
                                                     End
                                                 End
-                                            Until (bEscapeTextQualificatorTest = False or lsFileBufferPointer[iFilenumber].iBufferSize = 0 or bByteOk = False)
+                                            Until (bEscapeTextQualificatorTest = False or lsaFileBufferPointer[iFilenumber].iBufferSize = 0 or bByteOk = False)
                                         End
                                     End
-                                Until (bInTextFieldMode = False or lsFileBufferPointer[iFilenumber].iBufferSize = 0 or bByteOk = False)
+                                Until (bInTextFieldMode = False or lsaFileBufferPointer[iFilenumber].iBufferSize = 0 or bByteOk = False)
                             End
                         End
                     End
-                Until (bTextFieldReady = True or lsFileBufferPointer[iFilenumber].iBufferSize = 0 or bByteOk = False)    
-                Set plsCachedPointer to lsFileBufferPointer
-                If (lsFileBufferPointer[iFilenumber].iBufferSize = 0) Begin
-                    Move lsFile[iFilenumber].bEndOfFile to bEndOfFile
+                Until (bTextFieldReady = True or lsaFileBufferPointer[iFilenumber].iBufferSize = 0 or bByteOk = False)    
+                Set plsCachedPointer to lsaFileBufferPointer
+                If (lsaFileBufferPointer[iFilenumber].iBufferSize = 0) Begin
+                    Move lsaFile[iFilenumber].bEndOfFile to bEndOfFile
                     If (bEndOfFile = True) Begin
                         Move True to bTextFieldReady
                         Move True to bEndOfRow
@@ -1001,7 +998,7 @@ Class cFilesystem is a cObject
         UInteger iLo iNewPos
         Boolean bOk
         BigInt biFileSize biBigHi
-        structFile[] lsFile
+        structFile[] lsaFile
         Set pbError to False
         Move False to bOk
         Get BinaryFileHandle iFilenumber to hFileHandle
@@ -1018,16 +1015,16 @@ Class cFilesystem is a cObject
             Else Move True to bOk
             If bOk Begin
                 Get BinaryFileSize iFilenumber to biFileSize
-                Get plsaFile to lsFile
+                Get plsaFile to lsaFile
                 If (biFileSize > biPosition) Begin
-                    Move False to lsFile[iFilenumber].bEndOfFile
+                    Move False to lsaFile[iFilenumber].bEndOfFile
                     Set pbEOF to False
                 End
                 Else Begin
-                    Move True to lsFile[iFilenumber].bEndOfFile
+                    Move True to lsaFile[iFilenumber].bEndOfFile
                     Set pbEOF to True
                 End
-                Set plsaFile to lsFile
+                Set plsaFile to lsaFile
             End
         End
         Else Send warning_box FS_FILEHANDLEMISSING
@@ -1039,15 +1036,15 @@ Class cFilesystem is a cObject
     // ToDo: Test
     Function BinaryFileCachedPosition Integer iFileNumber Returns BigInt
         BigInt biPosition
-        structFileBufferPointer[] lsFileBufferPointer
+        structFileBufferPointer[] lsaFileBufferPointer
         Handle hFileHandle
         Move -1 to biPosition
         Get BinaryFileHandle iFilenumber to hFileHandle
         If hFileHandle Begin
-            Get plsCachedPointer to lsFileBufferPointer
-            If (iFilenumber < SizeOfArray(lsFileBufferPointer)) Begin
-                If (lsFileBufferPointer[iFileNumber].iBufferSize > 0) Begin
-                    Move (lsFileBufferPointer[iFileNumber].biFromFilePosition + lsFileBufferPointer[iFileNumber].iBufferPointer - 1) to biPosition
+            Get plsCachedPointer to lsaFileBufferPointer
+            If (iFilenumber < SizeOfArray(lsaFileBufferPointer)) Begin
+                If (lsaFileBufferPointer[iFileNumber].iBufferSize > 0) Begin
+                    Move (lsaFileBufferPointer[iFileNumber].biFromFilePosition + lsaFileBufferPointer[iFileNumber].iBufferPointer - 1) to biPosition
                 End
                 Else Begin
                     Get BinaryFilePosition iFileNumber to biPosition
@@ -1066,32 +1063,32 @@ Class cFilesystem is a cObject
     // ToDo: Test
     Procedure Set BinaryFileChachedPosition Integer iFileNumber BigInt biNewPosition
         Handle hFileHandle
-        structFileBufferPointer[] lsFileBufferPointer
+        structFileBufferPointer[] lsaFileBufferPointer
         String[] saCachedBuffer
         Get BinaryFileHandle iFilenumber to hFileHandle
         If hFileHandle Begin
-            Get plsCachedPointer to lsFileBufferPointer
-            If (lsFileBufferPointer[iFileNumber].biFromFilePosition > biNewPosition) Begin
-                Move 1 to lsFileBufferPointer[iFileNumber].iBufferPointer
-                Move 0 to lsFileBufferPointer[iFileNumber].iBufferSize
-                Set plsCachedPointer to lsFileBufferPointer
+            Get plsCachedPointer to lsaFileBufferPointer
+            If (lsaFileBufferPointer[iFileNumber].biFromFilePosition > biNewPosition) Begin
+                Move 1 to lsaFileBufferPointer[iFileNumber].iBufferPointer
+                Move 0 to lsaFileBufferPointer[iFileNumber].iBufferSize
+                Set plsCachedPointer to lsaFileBufferPointer
                 Set BinaryFilePosition iFileNumber to biNewPosition
                 Get psaCachedBuffer to saCachedBuffer
                 Move "" to saCachedBuffer[iFileNumber]
                 Set psaCachedBuffer to saCachedBuffer
             End
-            Else If ((lsFileBufferPointer[iFileNumber].biFromFilePosition + lsFileBufferPointer[iFileNumber].iBufferSize) < biNewPosition) Begin
-                Move 1 to lsFileBufferPointer[iFileNumber].iBufferPointer
-                Move 0 to lsFileBufferPointer[iFileNumber].iBufferSize
-                Set plsCachedPointer to lsFileBufferPointer
+            Else If ((lsaFileBufferPointer[iFileNumber].biFromFilePosition + lsaFileBufferPointer[iFileNumber].iBufferSize) < biNewPosition) Begin
+                Move 1 to lsaFileBufferPointer[iFileNumber].iBufferPointer
+                Move 0 to lsaFileBufferPointer[iFileNumber].iBufferSize
+                Set plsCachedPointer to lsaFileBufferPointer
                 Set BinaryFilePosition iFileNumber to biNewPosition
                 Get psaCachedBuffer to saCachedBuffer
                 Move "" to saCachedBuffer[iFileNumber]
                 Set psaCachedBuffer to saCachedBuffer
             End
             Else Begin
-                Move (biNewPosition - lsFileBufferPointer[iFileNumber].biFromFilePosition + 1) to lsFileBufferPointer[iFileNumber].iBufferPointer
-                Set plsCachedPointer to lsFileBufferPointer
+                Move (biNewPosition - lsaFileBufferPointer[iFileNumber].biFromFilePosition + 1) to lsaFileBufferPointer[iFileNumber].iBufferPointer
+                Set plsCachedPointer to lsaFileBufferPointer
             End
         End
         Else Send warning_box FS_FILEHANDLEMISSING
@@ -1106,7 +1103,7 @@ Class cFilesystem is a cObject
         Handle hFileHandle
         Boolean bError bOk 
         Integer iErrorNumber
-        structFile[] lsFile
+        structFile[] lsaFile
         Set pbError to False
         Get BinaryFileHandle iFilenumber to hFileHandle
         If hFileHandle Begin
@@ -1119,9 +1116,9 @@ Class cFilesystem is a cObject
                     If iErrorNumber Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
                 End
                 Else Begin
-                    Get plsaFile to lsFile
-                    Move True to lsFile[iFilenumber].bEndOfFile
-                    Set plsaFile to lsFile
+                    Get plsaFile to lsaFile
+                    Move True to lsaFile[iFilenumber].bEndOfFile
+                    Set plsaFile to lsaFile
                     Set pbEOF to True
                 End
             End
@@ -1134,15 +1131,15 @@ Class cFilesystem is a cObject
     // Returns true if the last read from the binary file had reached the end.
     // ToDo: Test
     Function BinaryFileEndOfFile Integer iFilenumber Returns Boolean
-        structFile[] lsFile
+        structFile[] lsaFile
         Handle hFileHandle
         Boolean bEndOfFile
         Move True to bEndOfFile
         Set pbError to False
         Get BinaryFileHandle iFilenumber to hFileHandle
         If hFileHandle Begin
-            Get plsaFile to lsFile
-            Move lsFile[iFilenumber].bEndOfFile to bEndOfFile
+            Get plsaFile to lsaFile
+            Move lsaFile[iFilenumber].bEndOfFile to bEndOfFile
         End
         Else Send warning_box FS_FILEHANDLEMISSING
         Function_Return bEndOfFile
@@ -1154,9 +1151,9 @@ Class cFilesystem is a cObject
     // ToDo: Test
     Function BinaryFileHandle Integer iFilenumber Returns Handle
         Handle hFileHandle
-        structFile[] lsFile
-        Get plsaFile to lsFile
-        If (iFilenumber < SizeOfArray(lsFile)) Move lsFile[iFilenumber].hFilehandle to hFileHandle
+        structFile[] lsaFile
+        Get plsaFile to lsaFile
+        If (iFilenumber < SizeOfArray(lsaFile)) Move lsaFile[iFilenumber].hFilehandle to hFileHandle
         Function_Return hFileHandle
     End_Function
 
@@ -2225,9 +2222,9 @@ Class cFilesystem is a cObject
     // ToDo: Test
     Function FileErrorText Integer iFilenumber Returns String
         String sErrorText
-        structFile[] lsFile
-        Get plsaFile to lsFile
-        If (iFilenumber < SizeOfArray(lsFile)) Move ("File: "+lsFile[iFilenumber].sFilename) to sErrorText
+        structFile[] lsaFile
+        Get plsaFile to lsaFile
+        If (iFilenumber < SizeOfArray(lsaFile)) Move ("File: "+lsaFile[iFilenumber].sFilename) to sErrorText
         Function_Return sErrorText
     End_Function
 
