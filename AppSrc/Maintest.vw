@@ -159,6 +159,17 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oCopyfilebn is a Button
+            Set Location to 38 123
+            Set Label to "File copy"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileCopy
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -303,6 +314,14 @@ Object oMaintest is a dbView
         Get Value of oTestFile to sValue
         Get FileMove of oFilesystem sValue (sValue + ".copy") 3 to bOk
         Send Info_Box (SFormat("Result: %1", If(bOk, "moved", "not moved")))
+    End_Procedure
+
+    Procedure DoFileCopy
+        String sValue
+        Boolean bOk
+        Get Value of oTestFile to sValue
+        Get FileCopy of oFilesystem sValue (sValue + ".copy") True 3 to bOk
+        Send Info_Box (SFormat("Result: %1", If(bOk, "copied", "not copied")))
     End_Procedure
     
 End_Object

@@ -229,9 +229,9 @@ External_Function fsMoveFile "MoveFileW" Kernel32.Dll ;
     WString lpNewFileName ;         // Pointer to a null-terminated string that specifies the new name of a file or directory.
     Returns Integer                 // The new name must Not already exist. A new File may be on A different File system Or drive. A new directory must be on the same drive.
 
-External_Function fsCopyFile "CopyFileA" Kernel32.Dll ;
-    Pointer lpExistingFileName ;    // Pointer to a null-terminated string that specifies the name of an existing file.
-    Pointer lpNewFileName ;         // Pointer to a null-terminated string that specifies the name of the new file.
+External_Function fsCopyFile "CopyFileW" Kernel32.Dll ;
+    WString lpExistingFileName ;    // Pointer to a null-terminated string that specifies the name of an existing file.
+    WString lpNewFileName ;         // Pointer to a null-terminated string that specifies the name of the new file.
     Boolean bFailIfExists ;         // If bFailIfExists is TRUE and the new file specified by lpNewFileName already exists, the function fails.
     Returns Integer                 // If bFailIfExists is FALSE and the new file already exists, the function overwrites the existing file and succeeds.
 
@@ -1311,28 +1311,31 @@ Class cFilesystem is a cObject
 
     // Copies a file. Overwriting an existing file by default.
     // Returns True if succeeds.
-    // ToDo: Test
     Function FileCopy String sExistingFileName String sNewFileName Boolean bFailIfExists Integer iRetryAttempts Returns Boolean
-        Boolean bCopied
-        String sExistingFileNameANSI sNewFileNameANSI
-        Boolean bDoNotOverwrite
+        Boolean bCopied bDoNotOverwrite
         Integer iErrorNumber iRetryLeft
         Set pbError to False
-        Move (ToAnsi(sExistingFileName)) to sExistingFileNameANSI
-        Move (ToAnsi(sNewFileName)) to sNewFileNameANSI
-        Move (sExistingFileNameANSI+(Character(0))) to sExistingFileNameANSI
-        Move (sNewFileNameANSI+(Character(0))) to sNewFileNameANSI
-        If (Num_Arguments > 2) Move bFailIfExists to bDoNotOverwrite
-        Else Move False to bDoNotOverwrite
-        If (num_arguments > 3) Move iRetryAttempts to iRetryLeft
-        Else Move 0 to iRetryLeft
+        If (Num_Arguments > 2) Begin
+            Move bFailIfExists to bDoNotOverwrite
+        End
+        Else Begin
+            Move False to bDoNotOverwrite
+        End
+        If (num_arguments > 3) Begin
+            Move iRetryAttempts to iRetryLeft
+        End
+        Else Begin
+            Move 0 to iRetryLeft
+        End
         Repeat
-            Move (fsCopyFile(AddressOf(sExistingFileNameANSI), AddressOf(sNewFileNameANSI), bDoNotOverwrite)) to bCopied
+            Move (fsCopyFile(sExistingFileName, sNewFileName, bDoNotOverwrite)) to bCopied
             If (bCopied = False) Begin  
                 Decrement iRetryLeft
                 If (iRetryLeft <= 0) Begin
                     Move (fsGetLastError()) to iErrorNumber
-                    If iErrorNumber Send DoShowError iErrorNumber ("Tried to copy file: "+sExistingFileName+" to "+sNewFileName)
+                    If iErrorNumber Begin
+                        Send DoShowError iErrorNumber ("Tried to copy file: "+sExistingFileName+" to "+sNewFileName)
+                    End
                 End
                 Else Begin
                     Sleep 1
