@@ -286,10 +286,10 @@ External_Function fsRemoveDirectory "RemoveDirectoryA" Kernel32.dll ;
     Pointer lpDirName ;             // Pointer to a null-terminated string that specifies the path of the directory to be removed.
     Returns Integer    
 
-External_Function fsExtractAssociatedIcon "ExtractAssociatedIconA" shell32.dll ;
-    Handle hInst ;
-    Pointer lpIconPath ;
-    Integer lpiIcon ;
+External_Function fsExtractAssociatedIcon "ExtractAssociatedIconW" shell32.dll ;
+    Handle hInst ;                  // A handle to the instance of the calling application.
+    WString lpIconPath ;            // The name of the file whose attributes are to be set.
+    Integer lpiIcon ;               // Pointer to a WORD value that, on entry, specifies the index of the icon whose handle is to be obtained.
     Returns Handle
     
 External_Function fsDestroyIcon "DestroyIcon" User32.dll ;
@@ -1620,18 +1620,22 @@ Class cFilesystem is a cObject
     // Gets a handle to an icon stored as a resource in a file or an icon 
     // stored in a file's associated executable file.
     // When the icon handle is no longer needed, close it by using the DestroyFileIcon procedure.
-    // ToDo: Test
     Function FileIcon String sFilename Returns Handle
         Handle hIcon    
-        Integer iIcon 
-        String sFilenameANSI
-        Move 0 to iIcon       
-        Move (ToANSI(sFilename)) to sFilenameANSI
-        Move (Pad(sFilenameANSI, 128)) to sFilenameANSI
-        Move (fsExtractAssociatedIcon(0, AddressOf(sFilenameANSI), AddressOf(iIcon))) to hIcon    
+        DWord dwIcon 
+        Move 0 to dwIcon       
+        Move (Pad(sFilename, MAX_PATH)) to sFilename
+        Move (fsExtractAssociatedIcon(0, sFilename, AddressOf(dwIcon))) to hIcon    
         Function_Return hIcon
     End_Function
     
+    // Destroy hIcon, created from FileIcon.
+    Procedure DestroyFileIcon Handle hIcon
+        Integer iResult
+        If (hIcon <> 0) Begin
+            Move (fsDestroyIcon(hIcon)) to iResult
+        End
+    End_Procedure
     
     // Returns the file name without the path.
     // Example sFilename = "x:\PathToFile\File.txt". The function returns "File.txt".
@@ -1698,16 +1702,6 @@ Class cFilesystem is a cObject
     End_Function
     
     
-    // Destroy hIcon, created from FileIcon.
-    // ToDo: Test
-    Procedure DestroyFileIcon Handle hIcon
-        Integer iResult
-        If (hIcon <> 0) Begin
-            Move (fsDestroyIcon(hIcon)) to iResult
-        End
-    End_Procedure
-
-
     // Search a directory for the files with normal windows mask-signs
     // Returns an array of matching files and directories
     // iMode = DIRMODE_FILES_ONLY

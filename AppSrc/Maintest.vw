@@ -216,12 +216,34 @@ Object oMaintest is a dbView
         End_Object
 
         Object oFileExtbn is a Button
-            Set Location to 72 70
+            Set Location to 72 71
             Set Label to "File extention"
         
             // fires when the button is clicked
             Procedure OnClick
                 Send DoFileExtention
+            End_Procedure
+        
+        End_Object
+
+        Object oFileExtbn is a Button
+            Set Location to 72 71
+            Set Label to "File extention"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileExtention
+            End_Procedure
+        
+        End_Object
+
+        Object oFileIconbn is a Button
+            Set Location to 72 124
+            Set Label to "File icon"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileIcon
             End_Procedure
         
         End_Object
@@ -423,4 +445,16 @@ Object oMaintest is a dbView
         Send Info_Box (SFormat("Extention: %1", sExtention))
     End_Procedure    
     
+    Procedure DoFileIcon
+        String sValue 
+        Boolean bOk
+        Handle hIcon
+        Get Value of oTestFile to sValue
+        Get FileIcon of oFilesystem sValue to hIcon
+        Send Info_Box (SFormat("Icon handle: %1", hIcon))
+        If (hIcon) Begin
+            Send DestroyFileIcon of oFilesystem hIcon
+        End
+    End_Procedure    
+
 End_Object
