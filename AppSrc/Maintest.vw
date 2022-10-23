@@ -137,6 +137,17 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oDeletebn is a Button
+            Set Location to 60 14
+            Set Label to "File delete"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileDelete
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -265,6 +276,14 @@ Object oMaintest is a dbView
         Get Value of oTestFile to sValue
         Get FileSearchRecursive of oFilesystem sValue to lsaResult
         Send Info_Box (SFormat("Found: %1", SizeOfArray(lsaResult)))
+    End_Procedure
+
+    Procedure DoFileDelete
+        String sValue
+        Boolean bOk
+        Get Value of oTestFile to sValue
+        Get FileDelete of oFilesystem sValue 3 to bOk
+        Send Info_Box (SFormat("Result: %1", If(bOk, "deleted", "not deleted")))
     End_Procedure
     
 End_Object

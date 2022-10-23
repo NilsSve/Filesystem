@@ -220,8 +220,8 @@ External_Function fsSetEndOfFile "SetEndOfFile" kernel32.dll ;
     Handle hFile ;              // handle to the file to have its EOF position moved.
     Returns Integer             // nonzero if success
 
-External_Function fsDeleteFile "DeleteFileA" Kernel32.Dll ;
-   Pointer lpFileName ;         // Pointer to a null-terminated string that specifies the file to be deleted.
+External_Function fsDeleteFile "DeleteFileW" Kernel32.Dll ;
+   WString lpFileName ;         // Pointer to a null-terminated string that specifies the file to be deleted.
    Returns Integer
 
 External_Function fsMoveFile "MoveFileA" Kernel32.Dll ;
@@ -1224,7 +1224,6 @@ Class cFilesystem is a cObject
     // iMode = DIRMODE_DIRECTORIES_ONLY
     // iMode = DIRMODE_FILES_AND_DIRECTORIES
     // Returns True if found
-    // ToDo: Test
     Function FileExists String sFilePathMask Integer iFileDirMode Returns Boolean
         Integer iMode
         Boolean bFound
@@ -1247,25 +1246,27 @@ Class cFilesystem is a cObject
 
     // Deletes a file.
     // Returns True if succeeds.
-    // ToDo: Test
     Function FileDelete String sFilename Integer iRetryAttempts Returns Boolean
         Boolean bFound bDeleted
         Integer iErrorNumber iRetryLeft
-        String sFilenameANSI
         Set pbError to False
-        If (num_arguments > 1) Move iRetryAttempts to iRetryLeft
-        Else Move 0 to iRetryLeft
+        If (num_arguments > 1) Begin
+            Move iRetryAttempts to iRetryLeft
+        End
+        Else Begin
+            Move 0 to iRetryLeft
+        End
         Get FileExists sFilename to bFound
-        If bFound Begin
+        If (bFound) Begin
             Repeat
-                Move (ToAnsi(sFilename)) to sFilenameANSI
-                Move (sFilenameANSI+(Character(0))) to sFilenameANSI
-                Move (fsDeleteFile(AddressOf(sFilenameANSI))) to bDeleted
+                Move (fsDeleteFile(sFilename)) to bDeleted
                 If (bDeleted = False) Begin     
                     Decrement iRetryLeft
                     If (iRetryLeft <= 0) Begin
                         Move (fsGetLastError()) to iErrorNumber
-                        If iErrorNumber Send DoShowError iErrorNumber ("Tried to delete file: "+sFilename)
+                        If iErrorNumber Begin
+                            Send DoShowError iErrorNumber ("Tried to delete file: "+sFilename)
+                        End
                     End
                     Else Begin
                         Sleep 1
