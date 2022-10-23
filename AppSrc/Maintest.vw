@@ -138,13 +138,24 @@ Object oMaintest is a dbView
         
         End_Object
 
-        Object oDeletebn is a Button
-            Set Location to 60 14
+        Object oDeleteFilebn is a Button
+            Set Location to 38 14
             Set Label to "File delete"
         
             // fires when the button is clicked
             Procedure OnClick
                 Send DoFileDelete
+            End_Procedure
+        
+        End_Object
+
+        Object oMovefilebn is a Button
+            Set Location to 38 70
+            Set Label to "File move"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileMove
             End_Procedure
         
         End_Object
@@ -284,6 +295,14 @@ Object oMaintest is a dbView
         Get Value of oTestFile to sValue
         Get FileDelete of oFilesystem sValue 3 to bOk
         Send Info_Box (SFormat("Result: %1", If(bOk, "deleted", "not deleted")))
+    End_Procedure
+    
+    Procedure DoFileMove
+        String sValue
+        Boolean bOk
+        Get Value of oTestFile to sValue
+        Get FileMove of oFilesystem sValue (sValue + ".copy") 3 to bOk
+        Send Info_Box (SFormat("Result: %1", If(bOk, "moved", "not moved")))
     End_Procedure
     
 End_Object

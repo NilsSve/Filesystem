@@ -224,9 +224,9 @@ External_Function fsDeleteFile "DeleteFileW" Kernel32.Dll ;
    WString lpFileName ;         // Pointer to a null-terminated string that specifies the file to be deleted.
    Returns Integer
 
-External_Function fsMoveFile "MoveFileA" Kernel32.Dll ;
-    Pointer lpExistingFileName ;    // Pointer to a null-terminated string that names an existing file or directory.
-    Pointer lpNewFileName ;         // Pointer to a null-terminated string that specifies the new name of a file or directory.
+External_Function fsMoveFile "MoveFileW" Kernel32.Dll ;
+    WString lpExistingFileName ;    // Pointer to a null-terminated string that names an existing file or directory.
+    WString lpNewFileName ;         // Pointer to a null-terminated string that specifies the new name of a file or directory.
     Returns Integer                 // The new name must Not already exist. A new File may be on A different File system Or drive. A new directory must be on the same drive.
 
 External_Function fsCopyFile "CopyFileA" Kernel32.Dll ;
@@ -1280,25 +1280,25 @@ Class cFilesystem is a cObject
 
     // Moves a file or directory.
     // Returns True if succeeds.
-    // ToDo: Test
     Function FileMove String sExistingFileName String sNewFileName Integer iRetryAttempts Returns Boolean
         Boolean bMoved
         Integer iErrorNumber iRetryLeft
-        String sExistingFilenameANSI sNewFileNameANSI
         Set pbError to False
-        If (num_arguments > 2) Move iRetryAttempts to iRetryLeft
-        Else Move 0 to iRetryLeft
-        Move (ToAnsi(sExistingFileName)) to sExistingFileNameANSI
-        Move (ToAnsi(sNewFileName)) to sNewFileNameANSI
-        Move (sExistingFilenameANSI+(Character(0))) to sExistingFilenameANSI
-        Move (sNewFileNameANSI+(Character(0))) to sNewFileNameANSI
+        If (num_arguments > 2) Begin
+            Move iRetryAttempts to iRetryLeft
+        End
+        Else Begin
+            Move 0 to iRetryLeft
+        End
         Repeat
-            Move (fsMoveFile(AddressOf(sExistingFilenameANSI), AddressOf(sNewFileNameANSI))) to bMoved
+            Move (fsMoveFile(sExistingFileName, sNewFileName)) to bMoved
             If (bMoved = False) Begin           
                 Decrement iRetryLeft
                 If (iRetryLeft <= 0) Begin
                     Move (fsGetLastError()) to iErrorNumber
-                    If iErrorNumber Send DoShowError iErrorNumber ("Tried to move/rename file: "+sExistingFileName+" to "+sNewFileName)
+                    If iErrorNumber Begin
+                        Send DoShowError iErrorNumber (SFormat("Tried to move/rename: file %1 to %2", sExistingFileName, sNewFileName))
+                    End
                 End
                 Else Begin
                     Sleep 1
