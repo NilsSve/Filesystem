@@ -5,12 +5,13 @@ Object oFilesystem is a cFilesystem
 End_Object
 
 Object oApplication is a cApplication
+    Set pbPreserveEnvironment to False
 End_Object
 
 Object oMain is a Panel
     Set Label To "My Project"
     Set Location to 4 3
-    Set Size to 300 450
+    Set Size to 321 450
 
     Object oClientArea is a ClientArea
         Use Maintest.vw

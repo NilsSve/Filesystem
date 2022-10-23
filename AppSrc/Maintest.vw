@@ -5,7 +5,7 @@ Activate_View Activate_oMaintest for oMaintest
 Object oMaintest is a dbView
 
     Set Border_Style to Border_Thick
-    Set Size to 200 300
+    Set Size to 241 300
     Set Location to 12 30
     Set Label to "Maintest"
     Set pbAutoActivate to True
@@ -22,54 +22,63 @@ Object oMaintest is a dbView
     
     End_Object
 
-    Object oCreateTextFile is a Button
-        Set Size to 14 58
-        Set Location to 33 18
-        Set Label to "Create text file"
-    
-        // fires when the button is clicked
-        Procedure OnClick
-            Send CreateTextFile
-        End_Procedure
-    
-    End_Object
+    Object ogrpBinary is a Group
+        Set Size to 100 269
+        Set Location to 32 15
+        Set Label to "Binary file methods"
 
-    Object oButton1 is a Button
-        Set Size to 14 58
-        Set Location to 33 87
-        Set Label to "Read text file"
-    
-        // fires when the button is clicked
-        Procedure OnClick
-            Send ReadTextFile
-        End_Procedure
-    
-    End_Object
-
-    Object oTextLN is a Button
-        Set Size to 14 58
-        Set Location to 33 155
-        Set Label to "Readln text file"
-        Set Enabled_State to False
+        Object oCreateTextFile is a Button
+            Set Size to 14 58
+            Set Location to 18 11
+            Set Label to "Create text file"
         
-    
-        // fires when the button is clicked
-        Procedure OnClick
-            Send ReadlnTextFile
-        End_Procedure
-    
+            // fires when the button is clicked
+            Procedure OnClick
+                Send CreateTextFile
+            End_Procedure
+        
+        End_Object
+        Object oButton1 is a Button
+            Set Size to 14 58
+            Set Location to 18 80
+            Set Label to "Read text file"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send ReadTextFile
+            End_Procedure
+        
+        End_Object
+        Object oTextLN is a Button
+            Set Size to 14 58
+            Set Location to 18 148
+            Set Label to "Readln text file"
+            Set Enabled_State to False
+            
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send ReadlnTextFile
+            End_Procedure
+        
+        End_Object
+        Object oGetFileSize is a Button
+            Set Size to 14 58
+            Set Location to 38 11
+            Set Label to "Get file size"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send GetFileSize
+            End_Procedure
+        
+        End_Object
     End_Object
 
-    Object oGetFileSize is a Button
-        Set Size to 14 58
-        Set Location to 53 18
-        Set Label to "Get file size"
-    
-        // fires when the button is clicked
-        Procedure OnClick
-            Send GetFileSize
-        End_Procedure
-    
+    Object ogrpFile is a Group
+        Set Size to 100 269
+        Set Location to 134 15
+        Set Label to "File methods"
     End_Object
 
     
