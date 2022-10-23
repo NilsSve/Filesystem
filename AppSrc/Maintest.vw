@@ -74,6 +74,18 @@ Object oMaintest is a dbView
         
         End_Object
 
+        Object oWriteBinaryHex is a Button
+            Set Size to 14 58
+            Set Location to 58 11
+            Set Label to "Write hex"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send WriteHex
+            End_Procedure
+        
+        End_Object
+
         Object oCopy is a Button
             Set Size to 14 58
             Set Location to 38 80
@@ -154,6 +166,23 @@ Object oMaintest is a dbView
         End
     End_Procedure
 
+    Procedure WriteHex
+        String sFile sHex sData
+        Integer iFilenumber
+        Short siValue
+        Boolean bOk
+        Get Value of oTestFile to sFile
+        Get BinaryFileNextFilenumber of oFilesystem to iFilenumber
+        Get BinaryFileOpen of oFilesystem iFilenumber sFile False True to bOk
+        If (bOk) Begin
+            For siValue from 0 to 255
+                Get ShortToHex of oFilesystem siValue to sHex
+                Move (sData + Right(sHex, 2)) to sData
+            Loop
+            Get BinaryFileWriteHex of oFilesystem iFilenumber (&sData) to bOk
+            Get BinaryFileClose of oFilesystem iFilenumber to bOk
+        End
+    End_Procedure
 
     Procedure BinaryCopy
         String sFile

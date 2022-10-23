@@ -969,21 +969,20 @@ Class cFilesystem is a cObject
     // HEX values in sWriteHEX are first coverted to bytes and then written
     // to the binary file.
     // Returns true if the HEX data was written to the file without error.
-    // ToDo: Test
     Function BinaryFileWriteHex Integer iFilenumer String ByRef sWriteHex Returns Boolean
-        String sData 
-        Integer iLength iCount iByte
+        UChar[] uaData
+        Integer iLength iCount iDataCount iByte
         Boolean bOk
         Move (Length(sWritehex)) to iLength
+        Move (ResizeArray(uaData, iLength / 2)) to uaData
         Move 1 to iCount
+        Move 0 to iDataCount
         While (iCount < iLength)
-            Move ("$"+Mid(sWriteHex, 2, iCount)) to iByte
+            Move ("$"+Mid(sWriteHex, 2, iCount)) to uaData[iDataCount]
             Move (iCount + 2) to iCount
-            Move (sData + Character(iByte)) to sData
+            Increment iDataCount
         Loop
-        // ToDo: Use the UCHAR version?
-        // ToDo: Test
-        Get BinaryFileWriteText iFilenumer (&sData) to bOk
+        Get BinaryFileWriteUChar iFilenumer (&uaData) to bOk
         Function_Return bOk
     End_Function
     
@@ -1578,7 +1577,6 @@ Class cFilesystem is a cObject
     
     
     // Convert an short integer to a 4-character hex string.
-    // ToDo: Test
     Function ShortToHex Short siValue Returns String
         String sHex
         Move "" to sHex
