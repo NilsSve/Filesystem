@@ -1639,7 +1639,6 @@ Class cFilesystem is a cObject
     
     // Returns the file name without the path.
     // Example sFilename = "x:\PathToFile\File.txt". The function returns "File.txt".
-    // ToDo: Test
     Function FileName String sFilename Returns String
         String sFilenameOnly sDirSep
         Integer iPos
@@ -1654,7 +1653,6 @@ Class cFilesystem is a cObject
     
     // Returns the file path without the filename. Does not return ending directory separator.
     // Example sFilename = "x:\PathToFile\File.txt". The function returns "x:\PathToFile".
-    // ToDo: Test
     Function FilePath String sFilename Returns String
         String sPathOnly sDirSep
         Integer iPos

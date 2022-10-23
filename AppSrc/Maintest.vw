@@ -247,6 +247,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oFilenamepathbn is a Button
+            Set Size to 14 73
+            Set Location to 72 176
+            Set Label to "File name and path"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileNameAndPath
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -455,6 +467,16 @@ Object oMaintest is a dbView
         If (hIcon) Begin
             Send DestroyFileIcon of oFilesystem hIcon
         End
+    End_Procedure    
+
+    Procedure DoFileNameAndPath
+        String sValue sName sPath
+        Boolean bOk
+        Handle hIcon
+        Get Value of oTestFile to sValue
+        Get FileName of oFilesystem sValue to sName
+        Get FilePath of oFilesystem sValue to sPath
+        Send Info_Box (SFormat("File name: %1\nFile path: %2", sName, sPath))
     End_Procedure    
 
 End_Object
