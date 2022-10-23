@@ -181,20 +181,6 @@ External_Function fsCreatefile "CreateFileW" kernel32.dll ;
 
 External_Function fsGetLastError "GetLastError" kernel32.dll Returns Integer
 
-External_Function fsFormatMessage "FormatMessageA" kernel32.dll ;
-    DWord dwFlags ;         // source and processing options
-    Pointer lpSrc ;         // message source
-    DWord dwMsgId ;         // message identifier
-    DWord dwLngId ;         // language identifier
-    Pointer lpBuf ;         // message buffer
-    DWord nSize ;           // maximum size of message buffer
-    Pointer Arg ;           // array of message inserts
-    Returns Integer
-    
-External_Function fsLocalFree "LocalFree" kernel32.dll ;
-    Handle hMem ;   // A handle to the local memory object.
-    Returns Integer
-
 External_Function fsCloseHandle "CloseHandle" kernel32.dll ;
     Handle hObject ;        // handle to object
     Returns Integer
@@ -1058,7 +1044,6 @@ Class cFilesystem is a cObject
 
 
     // Sets the file position from a binary file to a new position.
-    // ToDo: Test
     Procedure Set BinaryFilePosition Integer iFilenumber BigInt biPosition
         Handle hFileHandle
         Integer iHi iErrorNumber
@@ -1165,7 +1150,6 @@ Class cFilesystem is a cObject
     // Truncate or extend a binary file to the specified file position
     // by setting the binary file End Of File position.
     // If biPosition is -1 the current file position is used as EOF position.
-    // ToDo: Test
     Procedure Set BinaryFileEndOfFile Integer iFilenumber BigInt biPosition
         Handle hFileHandle
         Boolean bError bOk 
@@ -1174,13 +1158,17 @@ Class cFilesystem is a cObject
         Set pbError to False
         Get BinaryFileHandle iFilenumber to hFileHandle
         If hFileHandle Begin
-            If (biPosition > -1) Set BinaryFilePosition iFilenumber to biPosition
+            If (biPosition > -1) Begin
+                Set BinaryFilePosition iFilenumber to biPosition
+            End
             Get pbError to bError
             If (bError = False) Begin
                 Move (fsSetEndOfFile(hFileHandle)) to bOk
                 If (bOk = False) Begin
                     Move (fsGetLastError()) to iErrorNumber
-                    If iErrorNumber Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
+                    If iErrorNumber Begin
+                        Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
+                    End
                 End
                 Else Begin
                     Get plsaFile to lsaFile
@@ -1190,7 +1178,9 @@ Class cFilesystem is a cObject
                 End
             End
         End
-        Else Send warning_box FS_FILEHANDLEMISSING
+        Else Begin
+            Send warning_box FS_FILEHANDLEMISSING
+        End
         Set pbError to (not(bOk))
     End_Procedure
 
@@ -1215,12 +1205,13 @@ Class cFilesystem is a cObject
 
     // Returns the filehandle from the filenumber.
     // Returns 0 if the filenumber is not used.
-    // ToDo: Test
     Function BinaryFileHandle Integer iFilenumber Returns Handle
         Handle hFileHandle
         structFile[] lsaFile
         Get plsaFile to lsaFile
-        If (iFilenumber < SizeOfArray(lsaFile)) Move lsaFile[iFilenumber].hFilehandle to hFileHandle
+        If (iFilenumber < SizeOfArray(lsaFile)) Begin
+            Move lsaFile[iFilenumber].hFilehandle to hFileHandle
+        End
         Function_Return hFileHandle
     End_Function
 
@@ -2244,41 +2235,43 @@ Class cFilesystem is a cObject
     End_Function
     
 
-    // Fetch the error message from the system message table using the default language.
-    // ToDo: Test
+    // Fetch the error message from windows.
     Procedure DoShowError Integer iErrorNumber String sAppendErrorText
-        Pointer lpOut lpOutText
-        Integer iRetChars iRetVal iMaxFiles
-        String sMsg sFilename
-        Boolean bOk
+        Pointer lpOut
+        Integer iRetChars iRetVal
+        String sFilename sMessage
+        WString wsMsg
         Move 0 to lpOut
-        Move (fsFormatMessage((FORMAT_MESSAGE_FROM_SYSTEM+FORMAT_MESSAGE_IGNORE_INSERTS+FORMAT_MESSAGE_ALLOCATE_BUFFER), FNULL, iErrorNumber, FNULL, AddressOf(lpOut), 0, FNULL)) to iRetChars
+        Move (FormatMessageW((FORMAT_MESSAGE_FROM_SYSTEM+FORMAT_MESSAGE_IGNORE_INSERTS+FORMAT_MESSAGE_ALLOCATE_BUFFER), FNULL, iErrorNumber, FNULL, AddressOf(lpOut), 0, FNULL)) to iRetChars
         If (iRetChars > 0) Begin
-            ZeroString iRetChars to sMsg
-            Move (MemCopy(AddressOf(sMsg), lpOut, iRetChars)) to bOk
-            Move (fsLocalFree(lpOut)) to iRetVal
-            Move (ToOEM(sMsg)) to sMsg
+            Move (ZeroString(iRetChars)) to wsMsg
+            Move (CopyMemory(AddressOf(wsMsg), lpOut, iRetChars * 2)) to iRetVal
+            Move (Free(lpOut)) to iRetVal
+            Move wsMsg to sMessage
             If (num_arguments > 0) Begin
                 Move (Trim(sAppendErrorText)) to sAppendErrorText
                 If (sAppendErrorText <> "") Begin
-                    Append sMsg "\n" sAppendErrorText
+                    Move (sMessage + "\n" + sAppendErrorText) to sMessage
                 End
             End
-            Send warning_box sMsg
+            Send warning_box sMessage
         End
     End_Procedure
 
 
     // Shows a warning message to user with OK button and a exclamation icon.
     // private
-    // ToDo: Test
     Procedure warning_box String sWngMsg
         Integer iVoid
         Boolean bSendVdfError
         Set pbError to True
         Get pbErrorAsVDFError to bSendVdfError
-        If (bSendVdfError = False) Get Message_Box sWngMsg "Filesystem Error" MB_OK MB_ICONEXCLAMATION to iVoid
-        Else Error DFERR_PROGRAM sWngMsg
+        If (bSendVdfError = False) Begin
+            Get Message_Box sWngMsg "Filesystem Error" MB_OK MB_ICONEXCLAMATION to iVoid
+        End
+        Else Begin
+            Error DFERR_PROGRAM sWngMsg
+        End
     End_Procedure
 
 
@@ -2290,7 +2283,9 @@ Class cFilesystem is a cObject
         String sErrorText
         structFile[] lsaFile
         Get plsaFile to lsaFile
-        If (iFilenumber < SizeOfArray(lsaFile)) Move ("File: "+lsaFile[iFilenumber].sFilename) to sErrorText
+        If (iFilenumber < SizeOfArray(lsaFile)) Begin
+            Move ("File: "+lsaFile[iFilenumber].sFilename) to sErrorText
+        End
         Function_Return sErrorText
     End_Function
 
