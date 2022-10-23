@@ -73,6 +73,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oCopy is a Button
+            Set Size to 14 58
+            Set Location to 38 80
+            Set Label to "Copy"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send BinaryCopy
+            End_Procedure
+        
+        End_Object
     End_Object
 
     Object ogrpFile is a Group
@@ -138,6 +150,29 @@ Object oMaintest is a dbView
         If (bOk) Begin
             Get BinaryFileSize of oFilesystem iFilenumber to biFileSize
             Send Info_Box biFileSize
+            Get BinaryFileClose of oFilesystem iFilenumber to bOk
+        End
+    End_Procedure
+
+
+    Procedure BinaryCopy
+        String sFile
+        Integer iFilenumber iBytesRead iFilenumber2
+        Boolean bOk
+        UChar[] uaData
+        Get Value of oTestFile to sFile
+        Get BinaryFileNextFilenumber of oFilesystem to iFilenumber
+        Get BinaryFileOpen of oFilesystem iFilenumber sFile to bOk
+        If (bOk) Begin
+            Get BinaryFileNextFilenumber of oFilesystem to iFilenumber2
+            Get BinaryFileOpen of oFilesystem iFilenumber2 (sFile+".copy") False True to bOk
+            If (bOk) Begin
+                Repeat
+                    Get BinaryFileReadUChar of oFilesystem iFilenumber FS_BUFFERSIZE (&uaData) to iBytesRead
+                    Get BinaryFileWriteUChar of oFilesystem iFilenumber2 (&uaData) to bOk
+                Until (iBytesRead = 0)
+                Get BinaryFileClose of oFilesystem iFilenumber2 to bOk
+            End
             Get BinaryFileClose of oFilesystem iFilenumber to bOk
         End
     End_Procedure

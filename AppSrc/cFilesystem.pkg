@@ -161,6 +161,7 @@ Enum_List
     Define DIRMODE_FILES_AND_DIRECTORIES
 End_Enum_List
 
+// ToDo: Document this for use in BinaryfileReadUChar
 Define FS_BUFFERSIZE for |CI$2000
 
 //************************************************************************
@@ -590,7 +591,7 @@ Class cFilesystem is a cObject
 
 
     // Reading text from a binary file as a text file
-    // todo: Add comment for reading binary data use the uchar version
+    // To read data from a binary file use BinaryFileReadUChar method.
     // The text read from the file and returned. It reads the whole file at once.
     // pbEOF will then be true when the file has been read.
     // pbError will then be True if an error has occured.
@@ -632,6 +633,44 @@ Class cFilesystem is a cObject
         Function_Return sReadBuffer
     End_Function
 
+    // Reading from a binary file.
+    // The data read from the file is placed in uaReadBuffer and the function returns the number of bytes read.
+    // Then the function returns 0 end of file has been reached (pbEOF will then be true) or an error has occured (pbError will then be true).
+    // No errors occures if you try to read past end of file.
+    // To speed up reading process you should read in a block of data at a time (i.e. iNumberOfBytes = FS_BUFFERSIZE) instead of 
+    // reading one byte at a time. No errors occures if you try to read past end of file.
+    Function BinaryFileReadUChar Integer iFilenumber Integer iNumberOfBytes UChar[] ByRef uaReadBuffer Returns Integer
+        Handle hFileHandle
+        Integer iBytesRead iMaxBuffer iErrorNumber
+        Boolean bOk
+        Set pbError to False
+        Move 0 to iBytesRead
+        If (iNumberOfBytes < 1) Begin
+            Send warning_box "Number of bytes to read can not be less than one."
+            Function_Return iBytesRead
+        End
+        Get BinaryFileHandle iFilenumber to hFileHandle
+        If hFileHandle Begin
+            If (SizeOfArray(uaReadBuffer) <> iNumberOfBytes) Begin
+                Move (ResizeArray(uaReadBuffer, iNumberOfBytes)) to uaReadBuffer
+            End
+            Move (fsReadFile(hFileHandle, AddressOf(uaReadBuffer), iNumberOfBytes, (AddressOf(iBytesRead)), FNULL)) to bOk
+            If (bOk = False) Begin
+                Move (fsGetLastError()) to iErrorNumber
+                If iErrorNumber Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
+            End
+            Else Begin
+                If (iBytesRead = 0 or iBytesRead <> iNumberOfBytes) Begin
+                    Set pbEOF to True
+                    Move (ResizeArray(uaReadBuffer, iBytesRead)) to uaReadBuffer
+                End
+            End
+        End
+        Else Begin
+            Send warning_box FS_FILEHANDLEMISSING
+        End
+        Function_Return iBytesRead
+    End_Function
 
     // Reading from a binary file as text file until a search string are matched.
     // The text read from the file is placed in the sReturnBuffer and the function returns the number of bytes read until the match is read including the match.
@@ -868,10 +907,8 @@ Class cFilesystem is a cObject
         Function_Return bEndOfRow
     End_Function
     
-    // ToDo: Add the UCHAR versions from cFileSystemUCHAR for working with binary data.
-
     // Writing text to a binary file.
-    // ToDo: Add comment about using UCHAR version for writing data.
+    // To write data to a binary file use BinaryFileWriteUChar method.
     // Returns true if the string was written to the file without error.
     Function BinaryFileWriteText Integer iFilenumber String ByRef sWriteData Returns Boolean
         Integer iBytesWritten iBytesToWrite iErrorNumber
@@ -896,6 +933,36 @@ Class cFilesystem is a cObject
         Else Send warning_box FS_FILEHANDLEMISSING
         Function_Return bOk
     End_Function
+
+    // Writing to a binary file.
+    // Returns true if the data in uaWriteBuffer was written to the file without error.
+    Function BinaryFileWriteUChar Integer iFilenumber UChar[] ByRef uaWriteBuffer Returns Boolean
+        Integer iBytesWritten iBytesToWrite iErrorNumber
+        Handle hFileHandle
+        Boolean bOk
+        Set pbError to False
+        Move False to bOk
+        Get BinaryFileHandle iFilenumber to hFileHandle
+        If hFileHandle Begin
+            Move 0 to iBytesWritten
+            Move (SizeOfArray(uaWriteBuffer)) to iBytesToWrite
+            Move (fsWriteFile(hFileHandle, AddressOf(uaWriteBuffer), iBytesToWrite, AddressOf(iBytesWritten), FNULL)) to bOk
+            If (bOk = False) Begin
+                Move (fsGetLastError()) to iErrorNumber
+                If iErrorNumber Begin
+                    Send DoShowError iErrorNumber (FileErrorText(Self, iFilenumber))
+                End
+            End
+            If (iBytesToWrite <> iBytesWritten) Begin
+                Send Warning_box "Not all data could be written!"
+                Move False to bOk
+            End
+        End
+        Else Begin
+            Send warning_box FS_FILEHANDLEMISSING
+        End
+        Function_Return bOk
+    End_Function    
 
 
     // Write HEX values to a binary file as bytes.
