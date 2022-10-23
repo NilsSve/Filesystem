@@ -170,6 +170,28 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oFilesizebn is a Button
+            Set Location to 55 14
+            Set Label to "File size"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileSize
+            End_Procedure
+        
+        End_Object
+
+        Object oFiledatebn is a Button
+            Set Location to 55 70
+            Set Label to "File date"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileDate
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -323,5 +345,21 @@ Object oMaintest is a dbView
         Get FileCopy of oFilesystem sValue (sValue + ".copy") True 3 to bOk
         Send Info_Box (SFormat("Result: %1", If(bOk, "copied", "not copied")))
     End_Procedure
+
+    Procedure DoFileSize
+        String sValue
+        BigInt biFileSize
+        Get Value of oTestFile to sValue
+        Get FileSize of oFilesystem sValue to biFileSize
+        Send Info_Box (SFormat("Result: %1", biFileSize))
+    End_Procedure    
+
+    Procedure DoFileDate
+        String sValue
+        Date dDate
+        Get Value of oTestFile to sValue
+        Get FileDate of oFilesystem sValue to dDate
+        Send Info_Box (SFormat("Result: %1", dDate))
+    End_Procedure    
     
 End_Object

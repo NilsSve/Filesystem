@@ -1348,7 +1348,6 @@ Class cFilesystem is a cObject
 
     // Renames a file or directory.
     // Returns True if succeeds.
-    // ToDo: Test
     Function FileRename String sExistingFileName String sNewFileName Integer iRetryAttempts Returns Boolean
         Boolean bRenamed
         If (num_arguments > 2) Begin
@@ -1363,23 +1362,25 @@ Class cFilesystem is a cObject
 
     // Returns the file size of a file.
     // Returns -1 if an error occured.
-    // ToDo: Test
     Function FileSize String sFilename Returns BigInt
         tsSearchResult[] lsSearchResult
         Get FileSearch sFilename DIRMODE_FILES_ONLY to lsSearchResult
-        If (SizeOfArray(lsSearchResult) > 0) Function_Return lsSearchResult[0].biFileSize
-        Else Function_Return -1
+        If (SizeOfArray(lsSearchResult) > 0) Begin
+            Function_Return lsSearchResult[0].biFileSize
+        End
+        Function_Return -1
     End_Function
 
 
     // Returns the last write date of a file.
     // Returns 0 if an error occured.
-    // ToDo: Test
     Function FileDate String sFilename Returns Date
         tsSearchResult[] lsSearchResult
         Get FileSearch sFilename DIRMODE_FILES_ONLY to lsSearchResult
-        If (SizeOfArray(lsSearchResult) > 0) Function_Return lsSearchResult[0].dtLastWriteDateTime
-        Else Function_Return 0
+        If (SizeOfArray(lsSearchResult) > 0) Begin
+            Function_Return lsSearchResult[0].dtLastWriteDateTime
+        End
+        Function_Return 0
     End_Function
 
 
