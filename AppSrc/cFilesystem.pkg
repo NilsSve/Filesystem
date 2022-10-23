@@ -315,11 +315,11 @@ External_Function fsVerQueryValue "VerQueryValueW" Version.dll ;
     Pointer lpLen ;                 // When this method returns, contains a pointer to the size of the requested data pointed to by lpBuffer.
     Returns Boolean
 
-External_Function fsGetFullPathName "GetFullPathNameA" Kernel32.dll ;
-    Pointer lpFileName ;
-    DWord dwBufferLength ;
-    Pointer lpBuffer ;
-    Pointer lpFilePart ;
+External_Function fsGetFullPathName "GetFullPathNameW" Kernel32.dll ;
+    WString lpFileName ;            // The name of the file.
+    DWord dwBufferLength ;          // The size of the buffer to receive the null-terminated string for the drive and path, in TCHARs.
+    Pointer lpBuffer ;              // A pointer to a buffer that receives the null-terminated string for the drive and path.
+    Pointer lpFilePart ;            // A pointer to a buffer that receives the address (within lpBuffer) of the final file name component in the path.
     Returns Integer
 
 //************************************************************************
@@ -1667,12 +1667,11 @@ Class cFilesystem is a cObject
     
     // Returns the full path and file name of the specified file.
     // This takes the relative path build from the current application path.
-    // ToDo: Test
     Function FullPathName String sFilename Returns String
         String sAppPath sFullPath sOldCurrentDir
-        String sBuffer sFilenameANSI
         Boolean bChanged
         Integer iResult iErrorNumber
+        UShort[MAX_PATH] uaBuffer
         If (ghoApplication) Begin
             Get GetApplicationPath of ghoApplication to sAppPath
             Get_Current_Directory to sOldCurrentDir
@@ -1680,17 +1679,16 @@ Class cFilesystem is a cObject
                 Set_Directory sAppPath
                 Move True to bChanged
             End
-            Move (ToANSI(sFilename)) to sFilenameANSI
-            Append sFilenameANSI (Character(0))
-            ZeroString MAX_PATH to sBuffer
             Move 0 to iResult
-            Move (fsGetFullPathName(AddressOf(sFilenameANSI), MAX_PATH, AddressOf(sBuffer), FNULL)) to iResult
+            Move (fsGetFullPathName(sFilename, MAX_PATH, AddressOf(uaBuffer), FNULL)) to iResult
             If (iResult = 0) Begin
                 Move (fsGetLastError()) to iErrorNumber
-                If iErrorNumber Send DoShowError iErrorNumber ("File: "+sFilename)
+                If iErrorNumber Begin
+                    Send DoShowError iErrorNumber ("File: "+sFilename)
+                End
             End
             Else Begin
-                Move (CString(sBuffer)) to sFullPath
+                Move (PointerToWString(AddressOf(uaBuffer))) to sFullPath
             End
             If (bChanged) Begin
                 Set_Directory sOldCurrentDir

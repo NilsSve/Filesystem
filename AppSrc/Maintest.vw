@@ -5,7 +5,7 @@ Activate_View Activate_oMaintest for oMaintest
 Object oMaintest is a dbView
 
     Set Border_Style to Border_Thick
-    Set Size to 241 300
+    Set Size to 260 304
     Set Location to 12 30
     Set Label to "Maintest"
     Set pbAutoActivate to True
@@ -100,7 +100,7 @@ Object oMaintest is a dbView
     End_Object
 
     Object ogrpFile is a Group
-        Set Size to 100 269
+        Set Size to 117 269
         Set Location to 134 15
         Set Label to "File methods"
 
@@ -250,12 +250,24 @@ Object oMaintest is a dbView
 
         Object oFilenamepathbn is a Button
             Set Size to 14 73
-            Set Location to 72 176
+            Set Location to 91 14
             Set Label to "File name and path"
         
             // fires when the button is clicked
             Procedure OnClick
                 Send DoFileNameAndPath
+            End_Procedure
+        
+        End_Object
+
+        Object oFullPathbn is a Button
+            Set Size to 14 73
+            Set Location to 91 91
+            Set Label to "File full path name"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileFullPathName
             End_Procedure
         
         End_Object
@@ -477,6 +489,15 @@ Object oMaintest is a dbView
         Get FileName of oFilesystem sValue to sName
         Get FilePath of oFilesystem sValue to sPath
         Send Info_Box (SFormat("File name: %1\nFile path: %2", sName, sPath))
+    End_Procedure    
+
+    Procedure DoFileFullPathName
+        String sValue sFullPath
+        Boolean bOk
+        Handle hIcon
+        Get Value of oTestFile to sValue
+        Get FullPathName of oFilesystem sValue to sFullPath
+        Send Info_Box (SFormat("Full path name: %1", sFullPath))
     End_Procedure    
 
 End_Object
