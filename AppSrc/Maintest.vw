@@ -192,6 +192,17 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oFileversionbn is a Button
+            Set Location to 55 123
+            Set Label to "File version"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileVersion
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -360,6 +371,15 @@ Object oMaintest is a dbView
         Get Value of oTestFile to sValue
         Get FileDate of oFilesystem sValue to dDate
         Send Info_Box (SFormat("Result: %1", dDate))
+    End_Procedure    
+
+    Procedure DoFileVersion
+        String sValue
+        tsFileVersionInfo lsFileversion
+        Boolean bOk
+        Get Value of oTestFile to sValue
+        Get FileVersion of oFilesystem sValue (&lsFileversion) to bOk
+        Send Info_Box (SFormat("Result: %1", If(bOk, "ok", "not ok")))
     End_Procedure    
     
 End_Object

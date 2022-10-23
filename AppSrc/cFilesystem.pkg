@@ -296,21 +296,21 @@ External_Function fsDestroyIcon "DestroyIcon" User32.dll ;
     Handle hIcon ;
     Returns Integer    
 
-External_Function fsGetFileVersionInfoSize "GetFileVersionInfoSizeA" Version.dll ;
-    Pointer lpFilename ;            // The name of the file of interest. The function uses the search sequence specified by the LoadLibrary function.
+External_Function fsGetFileVersionInfoSize "GetFileVersionInfoSizeW" Version.dll ;
+    WString lpFilename ;            // The name of the file of interest. The function uses the search sequence specified by the LoadLibrary function.
     Pointer lpHandle ;              // A pointer to a variable that the function sets to zero.
     Returns UInteger
     
-External_Function fsGetFileVersionInfo "GetFileVersionInfoA" Version.dll ;
-    Pointer lpFilename ;            // The name of the file. If a full path is not specified, the function uses the search sequence specified by the LoadLibrary function.
+External_Function fsGetFileVersionInfo "GetFileVersionInfoW" Version.dll ;
+    WString lpFilename ;            // The name of the file. If a full path is not specified, the function uses the search sequence specified by the LoadLibrary function.
     DWord dwHandle ;                // This parameter is ignored.
     DWord dwLen ;                   // The size, in bytes, of the buffer pointed to by the lpData parameter.
     Pointer lpData ;                // Pointer to a buffer that receives the file-version information.
     Returns Boolean
     
-External_Function fsVerQueryValue "VerQueryValueA" Version.dll ;
+External_Function fsVerQueryValue "VerQueryValueW" Version.dll ;
     Pointer lpBlock ;               // The version-information resource returned by the GetFileVersionInfo function.
-    Pointer lpSubBlock ;            // The version-information value to be retrieved.
+    WString lpSubBlock ;            // The version-information value to be retrieved.
     Pointer lpBuffer ;              // When this method returns, contains the address of a pointer to the requested version information in the buffer pointed to by lpBlock.
     Pointer lpLen ;                 // When this method returns, contains a pointer to the size of the requested data pointed to by lpBuffer.
     Returns Boolean
@@ -1386,64 +1386,60 @@ Class cFilesystem is a cObject
 
     // Returns the fileversion info.
     // Returns false if an error occured.
-    // ToDo: Test
     Function FileVersion String sFilename tsFileVersionInfo ByRef lsFileVersionInfo Returns Boolean
         Boolean bOk
         Integer iErrorNumber iStatus
         Get _FileVersion sFilename (&lsFileVersionInfo) to iStatus
         If (iStatus = -1) Begin
             Move (fsGetLastError()) to iErrorNumber
-            If iErrorNumber Send DoShowError iErrorNumber ("Tried to get fileversion info from file: "+sFilename)
+            If iErrorNumber Begin
+                Send DoShowError iErrorNumber ("Tried to get fileversion info from file: "+sFilename)
+            End
         End
         Move (iStatus = 0) to bOk
         Function_Return bOk
     End_Function
         
     {Visibility = Private}
-    // ToDo: Test
     Function _FileVersion String sFilename tsFileVersionInfo ByRef lsFileVersionInfo Returns Integer
         tsVS_FIXEDFILEINFO lsFIXEDFILEINFO
         UInteger iBytesNeeded
-        Address aBuffer  
+        Pointer lpBuffer  
         Boolean bOk
         String sSubBlock
         DWord dwBufferLen dwBufferPointer
         tsLandAndCodePage lsLandAndCodePage
-        Move (ToANSI(sFilename)) to sFilename
-        Move (sFilename + (Character(0))) to sFilename
         Move 0 to iBytesNeeded
-        Move 0 to aBuffer
         Move 0 to lsFIXEDFILEINFO.dwStrucVersion    // Initialize the variable.
         Move 0 to lsLandAndCodePage.wCodePage
-        Move (fsGetFileVersionInfoSize(AddressOf(sFilename), 0)) to iBytesNeeded
+        Move (fsGetFileVersionInfoSize(sFilename, 0)) to iBytesNeeded
         If (iBytesNeeded = 0) Begin
-            Function_Return False
+            Function_Return 0
         End
         Move False to bOk
-        Move (Alloc(iBytesNeeded)) to aBuffer
-        Move (MemSet(aBuffer, 0, iBytesNeeded)) to bOk
-        Move (fsGetFileVersionInfo(AddressOf(sFilename), 0, iBytesNeeded, aBuffer)) to bOk
+        Move (Alloc(iBytesNeeded)) to lpBuffer
+        Move (MemSet(lpBuffer, 0, iBytesNeeded)) to bOk
+        Move (fsGetFileVersionInfo(sFilename, 0, iBytesNeeded, lpBuffer)) to bOk
         If (not(bOk)) Begin
-            Move (Free(aBuffer)) to bOk
+            Move (Free(lpBuffer)) to bOk
             Function_Return -1
         End
         Move "\" to sSubBlock
-        Move (sSubBlock + (Character(0))) to sSubBlock
         Move 0 to dwBufferLen
         Move 0 to dwBufferPointer
-        Move (fsVerQueryValue(aBuffer, AddressOf(sSubBlock), AddressOf(dwBufferPointer), AddressOf(dwBufferLen))) to bOk
+        Move (fsVerQueryValue(lpBuffer, sSubBlock, AddressOf(dwBufferPointer), AddressOf(dwBufferLen))) to bOk
         If (not(bOk)) Begin
-            Move (Free(aBuffer)) to bOk
+            Move (Free(lpBuffer)) to bOk
             Function_Return -1
         End
         If (dwBufferLen <> 52) Begin
             Send warning_box (SFormat("Length of bufferdata for VS_FIXEDFILEINFO struct are not in the expected size.\nLength is %1 and should have been 52.", dwBufferLen))
-            Move (Free(aBuffer)) to bOk
+            Move (Free(lpBuffer)) to bOk
             Function_Return -2
         End
         Move (MemCopy(AddressOf(lsFIXEDFILEINFO), dwBufferPointer, dwBufferLen)) to bOk
         If (not(bOk)) Begin
-            Move (Free(aBuffer)) to bOk
+            Move (Free(lpBuffer)) to bOk
             Function_Return -1
         End
         Move lsFIXEDFILEINFO to lsFileVersionInfo.lsFIXEDFILEINFO
@@ -1457,36 +1453,53 @@ Class cFilesystem is a cObject
         Move (Hi(lsFIXEDFILEINFO.dwProductVersionLS)) to lsFileVersionInfo.siProductVersion[2]
         Move (Low(lsFIXEDFILEINFO.dwProductVersionLS)) to lsFileVersionInfo.siProductVersion[3]
         Move "\VarFileInfo\Translation" to sSubBlock
-        Move (sSubBlock + (Character(0))) to sSubBlock
         Move 0 to dwBufferLen
         Move 0 to dwBufferPointer
-        Move (fsVerQueryValue(aBuffer, AddressOf(sSubBlock), AddressOf(dwBufferPointer), AddressOf(dwBufferLen))) to bOk
+        Move (fsVerQueryValue(lpBuffer, sSubBlock, AddressOf(dwBufferPointer), AddressOf(dwBufferLen))) to bOk
         If (not(bOk)) Begin
-            Move (Free(aBuffer)) to bOk
+            Move (Free(lpBuffer)) to bOk
             Function_Return -1
         End
         If (dwBufferLen <> 4) Begin
             Send warning_box (SFormat("Length of bufferdata for land and codepage nunbers are not in the expected size.\nLength is %1 and should have been 4.", dwBufferLen))
-            Move (Free(aBuffer)) to bOk
+            Move (Free(lpBuffer)) to bOk
             Function_Return -2
         End
         Move (MemCopy(AddressOf(lsLandAndCodePage), dwBufferPointer, dwBufferLen)) to bOk
-        Get VerQueryValueStringFileInfo aBuffer "Comments" lsLandAndCodePage to lsFileVersionInfo.sComments
-        Get VerQueryValueStringFileInfo aBuffer "CompanyName" lsLandAndCodePage to lsFileVersionInfo.sCompanyName
-        Get VerQueryValueStringFileInfo aBuffer "FileDescription" lsLandAndCodePage to lsFileVersionInfo.sFileDescription
-        Get VerQueryValueStringFileInfo aBuffer "FileVersion" lsLandAndCodePage to lsFileVersionInfo.sFileVersion
-        Get VerQueryValueStringFileInfo aBuffer "InternalName" lsLandAndCodePage to lsFileVersionInfo.sInternalName
-        Get VerQueryValueStringFileInfo aBuffer "LegalCopyright" lsLandAndCodePage to lsFileVersionInfo.sLegalCopyright
-        Get VerQueryValueStringFileInfo aBuffer "LegalTrademarks" lsLandAndCodePage to lsFileVersionInfo.sLegalTrademarks
-        Get VerQueryValueStringFileInfo aBuffer "OriginalFilename" lsLandAndCodePage to lsFileVersionInfo.sOriginalFilename
-        Get VerQueryValueStringFileInfo aBuffer "ProductName" lsLandAndCodePage to lsFileVersionInfo.sProductName
-        Get VerQueryValueStringFileInfo aBuffer "ProductVersion" lsLandAndCodePage to lsFileVersionInfo.sProductVersion
-        Get VerQueryValueStringFileInfo aBuffer "PrivateBuild" lsLandAndCodePage to lsFileVersionInfo.sPrivateBuild
-        Get VerQueryValueStringFileInfo aBuffer "SpecialBuild" lsLandAndCodePage to lsFileVersionInfo.sSpecialBuild
-        Move (Free(aBuffer)) to bOk
+        Get VerQueryValueStringFileInfo lpBuffer "Comments" lsLandAndCodePage to lsFileVersionInfo.sComments
+        Get VerQueryValueStringFileInfo lpBuffer "CompanyName" lsLandAndCodePage to lsFileVersionInfo.sCompanyName
+        Get VerQueryValueStringFileInfo lpBuffer "FileDescription" lsLandAndCodePage to lsFileVersionInfo.sFileDescription
+        Get VerQueryValueStringFileInfo lpBuffer "FileVersion" lsLandAndCodePage to lsFileVersionInfo.sFileVersion
+        Get VerQueryValueStringFileInfo lpBuffer "InternalName" lsLandAndCodePage to lsFileVersionInfo.sInternalName
+        Get VerQueryValueStringFileInfo lpBuffer "LegalCopyright" lsLandAndCodePage to lsFileVersionInfo.sLegalCopyright
+        Get VerQueryValueStringFileInfo lpBuffer "LegalTrademarks" lsLandAndCodePage to lsFileVersionInfo.sLegalTrademarks
+        Get VerQueryValueStringFileInfo lpBuffer "OriginalFilename" lsLandAndCodePage to lsFileVersionInfo.sOriginalFilename
+        Get VerQueryValueStringFileInfo lpBuffer "ProductName" lsLandAndCodePage to lsFileVersionInfo.sProductName
+        Get VerQueryValueStringFileInfo lpBuffer "ProductVersion" lsLandAndCodePage to lsFileVersionInfo.sProductVersion
+        Get VerQueryValueStringFileInfo lpBuffer "PrivateBuild" lsLandAndCodePage to lsFileVersionInfo.sPrivateBuild
+        Get VerQueryValueStringFileInfo lpBuffer "SpecialBuild" lsLandAndCodePage to lsFileVersionInfo.sSpecialBuild
+        Move (Free(lpBuffer)) to bOk
         Function_Return 0
     End_Function
 
+    Register_Function ShortToHex Short siValue Returns String
+    {Visibility = Private}
+    Function VerQueryValueStringFileInfo Pointer lpBuffer String sInfoName tsLandAndCodePage lsLandAndCodePage Returns String
+        String sSubBlock
+        String sValue
+        DWord dwBufferLen dwBufferPointer
+        Boolean bOk
+        Move (SFormat("\StringFileInfo\%1%2\%3", ShortToHex(Self, lsLandAndCodePage.wLanguage), ShortToHex(Self, lsLandAndCodePage.wCodePage), sInfoName)) to sSubBlock
+        Move 0 to dwBufferLen
+        Move 0 to dwBufferPointer
+        Move (fsVerQueryValue(lpBuffer, sSubBlock, AddressOf(dwBufferPointer), AddressOf(dwBufferLen))) to bOk
+        If (not(bOk)) Begin
+            Function_Return ""
+        End
+        Move (PointerToWString(dwBufferPointer)) to sValue  // Auto convert from wstring to string.
+        Function_Return sValue
+    End_Function
+    
     
     // Returns the files status for the readonly attribute.
     // ToDo: Test
@@ -1594,27 +1607,6 @@ Class cFilesystem is a cObject
     End_Function
 
 
-    {Visibility = Private}
-    // ToDo: Test
-    Function VerQueryValueStringFileInfo Address aBuffer String sInfoName tsLandAndCodePage lsLandAndCodePage Returns String
-        String sSubBlock
-        String sValue
-        DWord dwBufferLen dwBufferPointer
-        Boolean bOk
-        Move (SFormat("\StringFileInfo\%1%2\%3", ShortToHex(Self, lsLandAndCodePage.wLanguage), ShortToHex(Self, lsLandAndCodePage.wCodePage), sInfoName)) to sSubBlock
-        Move (sSubBlock + (Character(0))) to sSubBlock
-        Move 0 to dwBufferLen
-        Move 0 to dwBufferPointer
-        Move (fsVerQueryValue(aBuffer, AddressOf(sSubBlock), AddressOf(dwBufferPointer), AddressOf(dwBufferLen))) to bOk
-        If (not(bOk)) Begin
-            Function_Return ""
-        End
-        ZeroString dwBufferLen to sValue
-        Move (MemCopy(AddressOf(sValue), dwBufferPointer, dwBufferLen)) to bOk
-        Function_Return (ToOEM(CString(sValue)))
-    End_Function
-
-    
     // Returns the file extention without the leading "."
     // Example sFile = "x:\text.txt". The function returns "txt".
     // ToDo: Test
@@ -1797,8 +1789,8 @@ Class cFilesystem is a cObject
                 End
                 If bFound Begin
                     Move (AddressOf(lsFindData)) to lpFindData
-                    Move (PointerToWString(lpFindData + iFileNameOffset)) to lsSearchResult[iSearchResultCount].sFilename // Autoconvert from wstring to string.
-                    Move (PointerToWString(lpFindData + iAltFileNameOffset)) to lsSearchResult[iSearchResultCount].sAlternateFileName   // Autoconvert from wstring to string.
+                    Move (PointerToWString(lpFindData + iFileNameOffset)) to lsSearchResult[iSearchResultCount].sFilename // Auto convert from wstring to string.
+                    Move (PointerToWString(lpFindData + iAltFileNameOffset)) to lsSearchResult[iSearchResultCount].sAlternateFileName   // Auto convert from wstring to string.
                     Move lsFindData.dwFileAttributes to lsSearchResult[iSearchResultCount].iFileAttributes
                     Get ConvertFileTileToLocalDateTime lsFindData.ftCreationDateTime to lsSearchResult[iSearchResultCount].dtCreationDateTime
                     Get ConvertFileTileToLocalDateTime lsFindData.ftLastAccessDateTime to lsSearchResult[iSearchResultCount].dtLastAccessDateTime
