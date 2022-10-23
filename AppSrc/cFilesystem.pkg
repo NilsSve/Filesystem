@@ -815,7 +815,7 @@ Class cFilesystem is a cObject
                                                         End
                                                     End
                                                     Else Begin
-                                                        Set BinaryFileChachedPosition iFilenumber to biAfterTextQualificator
+                                                        Set BinaryFileCachedPosition iFilenumber to biAfterTextQualificator
                                                         Get plsCachedPointer to lsaFileBufferPointer
                                                         Move False to bEscapeTextQualificatorTest
                                                         Move False to bInTextFieldMode
@@ -1014,7 +1014,6 @@ Class cFilesystem is a cObject
 
     // Retrives the file position from a binary file.
     // Returns -1 if an error occured.
-    // ToDo: Test
     Function BinaryFilePosition Integer iFilenumber Returns BigInt
         BigInt biFilePosition biBigHi
         Handle hFileHandle
@@ -1113,7 +1112,7 @@ Class cFilesystem is a cObject
 
     // Sets the pointer for the current file cache.
     // ToDo: Test
-    Procedure Set BinaryFileChachedPosition Integer iFileNumber BigInt biNewPosition
+    Procedure Set BinaryFileCachedPosition Integer iFileNumber BigInt biNewPosition
         Handle hFileHandle
         structFileBufferPointer[] lsaFileBufferPointer
         String[] saCachedBuffer
@@ -1186,7 +1185,6 @@ Class cFilesystem is a cObject
 
     
     // Returns true if the last read from the binary file had reached the end.
-    // ToDo: Test
     Function BinaryFileEndOfFile Integer iFilenumber Returns Boolean
         structFile[] lsaFile
         Handle hFileHandle
@@ -1198,7 +1196,9 @@ Class cFilesystem is a cObject
             Get plsaFile to lsaFile
             Move lsaFile[iFilenumber].bEndOfFile to bEndOfFile
         End
-        Else Send warning_box FS_FILEHANDLEMISSING
+        Else Begin
+            Send warning_box FS_FILEHANDLEMISSING
+        End
         Function_Return bEndOfFile
     End_Function
     
