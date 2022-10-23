@@ -214,6 +214,17 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oFileExtbn is a Button
+            Set Location to 72 70
+            Set Label to "File extention"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileExtention
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -403,5 +414,13 @@ Object oMaintest is a dbView
         Get FileReadOnly of oFilesystem sValue to bReadOnly
         Send Info_Box (SFormat("Changed to: %1", If(bReadOnly, "read only", "write enabled")))
     End_Procedure
+
+    Procedure DoFileExtention
+        String sValue sExtention
+        Boolean bOk
+        Get Value of oTestFile to sValue
+        Get FileExtention of oFilesystem sValue to sExtention
+        Send Info_Box (SFormat("Extention: %1", sExtention))
+    End_Procedure    
     
 End_Object

@@ -1603,7 +1603,6 @@ Class cFilesystem is a cObject
 
     // Returns the file extention without the leading "."
     // Example sFile = "x:\text.txt". The function returns "txt".
-    // ToDo: Test
     Function FileExtention String sFilename Returns String
         String sExtention
         Integer iPos
