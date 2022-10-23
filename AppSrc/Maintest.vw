@@ -114,6 +114,17 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oSearchfilebn is a Button
+            Set Location to 18 70
+            Set Label to "Search file"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoSearchFile
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -224,6 +235,15 @@ Object oMaintest is a dbView
         Get Value of oTestFile to sValue
         Get FileExists of oFilesystem sValue to bOk
         Send Info_Box (SFormat("Result: %1", If(bOk, "found", "not found")))
+    End_Procedure
+    
+    Procedure DoSearchFile
+        String sValue
+        Boolean bOk
+        tsSearchResult[] lsaResult
+        Get Value of oTestFile to sValue
+        Get FileSearch of oFilesystem sValue to lsaResult
+        Send Info_Box (SFormat("Found: %1", SizeOfArray(lsaResult)))
     End_Procedure
     
 End_Object

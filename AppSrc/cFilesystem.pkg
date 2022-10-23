@@ -240,7 +240,7 @@ External_Function fsFindFirstFile "FindFirstFileW" Kernel32.Dll ;
     Pointer lpWin32_Find_Data ;     // Pointer to the WIN32_FIND_DATAW structure that receives information about the found file or subdirectory.
     Returns Integer
 
-External_Function fsFindNextFile "FindNextFileA" Kernel32.Dll ;
+External_Function fsFindNextFile "FindNextFileW" Kernel32.Dll ;
     Handle hFindFile ;              // handle returned by a previous call to the FindFirstFile function.
     Pointer lpWin32_Find_Data ;     // Pointer to the WIN32_FIND_DATA structure that receives information about the found file or subdirectory.
     Returns Integer
@@ -1727,7 +1727,6 @@ Class cFilesystem is a cObject
     // If bReturnOnlyOne is true and no items where found no error is shown.
     // If bSkipRelativePaths is true and iMode = DIRMODE_DIRECTORIES_ONLY or DIRMODE_FILES_AND_DIRECTORIES search results that contains 
     //  "." or ".." are not returned in the array.
-    // ToDo: Test
     Function FileSearch String sFilePathMask Integer iFileDirMode Boolean bReturnOnlyOne Boolean bSkipRelativePaths Returns tsSearchResult[]
         tsSearchResult[] lsSearchResult
         Integer iSearchResultCount iMode iErrorNumber iFileNameOffset iAltFileNameOffset
@@ -1783,7 +1782,6 @@ Class cFilesystem is a cObject
                 Case End
                 If (bFound = True and iMode <> DIRMODE_FILES_ONLY) Begin
                     If (bFound = True and bNoRelativePaths = True) Begin
-                        // ToDo: Test
                         If (lsFindData.cFileName[0] = 46 and lsFindData.cFileName[1] = 0) Begin
                             Move False to bFound
                         End
