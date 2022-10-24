@@ -2008,25 +2008,23 @@ Class cFilesystem is a cObject
     
     // Removes a directory and all its contents.
     // Returns true on succes.
-    // ToDo: Test
     Function DirectoryRemoveRecursive String sDirectoryName Returns Boolean
-        tsSearchResult[] alsSearchResults
+        tsSearchResult[] lsaSearchResult
         Integer iIndex
         Boolean bOk bExists
-        
-        If (Right(sDirectoryName, 1) = "\") Begin
-            Move (Left(sDirectoryName, Length(sDirectoryName) - 1)) to sDirectoryName
-        End
-        Get FileSearch (sDirectoryName + "\*") DIRMODE_DIRECTORIES_ONLY to alsSearchResults
-        For iIndex from 2 to (SizeOfArray(alsSearchResults) - 1)
-            Get DirectoryRemoveRecursive (sDirectoryName + "\" + alsSearchResults[iIndex].sFilename) to bOk
+        String sDirSep
+        Move (SysConf(SYSCONF_DIR_SEPARATOR)) to sDirSep
+        Get RemoveFolderSeperator sDirectoryName to sDirectoryName
+        Get FileSearch (SFormat("%1%2*", sDirectoryName, sDirSep)) DIRMODE_DIRECTORIES_ONLY to lsaSearchResult
+        For iIndex from 2 to (SizeOfArray(lsaSearchResult) - 1)
+            Get DirectoryRemoveRecursive (SFormat("%1%2%3", sDirectoryName, sDirSep, lsaSearchResult[iIndex].sFilename)) to bOk
             If (not(bOk)) Begin
                 Function_Return False
             End
         Loop
-        Get FileSearch (sDirectoryName + "\*") DIRMODE_FILES_ONLY to alsSearchResults
-        For iIndex from 0 to (SizeOfArray(alsSearchResults) - 1)
-            Get FileDelete (sDirectoryName + "\" + alsSearchResults[iIndex].sFilename) 3 to bOk
+        Get FileSearch (SFormat("%1%2*", sDirectoryName, sDirSep)) DIRMODE_FILES_ONLY to lsaSearchResult
+        For iIndex from 0 to (SizeOfArray(lsaSearchResult) - 1)
+            Get FileDelete (SFormat("%1%2%3", sDirectoryName, sDirSep, lsaSearchResult[iIndex].sFilename)) 3 to bOk
             If (not(bOk)) Begin
                 Function_Return False
             End

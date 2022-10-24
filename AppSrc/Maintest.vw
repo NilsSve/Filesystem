@@ -352,7 +352,7 @@ Object oMaintest is a dbView
         
         End_Object
 
-        Object oDirCreatebn is a Button
+        Object oDirRemovebn is a Button
             Set Size to 14 68
             Set Location to 17 87
             Set Label to "Directory remove"
@@ -360,6 +360,18 @@ Object oMaintest is a dbView
             // fires when the button is clicked
             Procedure OnClick
                 Send DoDirRemove
+            End_Procedure
+        
+        End_Object
+
+        Object oDirRemoveRecursivebn is a Button
+            Set Size to 14 115
+            Set Location to 36 12
+            Set Label to "Directory remove recursive"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoDirRemoveRecursive
             End_Procedure
         
         End_Object
@@ -627,6 +639,14 @@ Object oMaintest is a dbView
         Boolean bOk
         Get Value of oTestDir to sValue
         Get DirectoryRemove of oFilesystem sValue to bOk
+        Send Info_Box (SFormat("Result: %1", If(bOk, "removed", "not removed")))
+    End_Procedure
+
+    Procedure DoDirRemoveRecursive
+        String sValue
+        Boolean bOk
+        Get Value of oTestDir to sValue
+        Get DirectoryRemoveRecursive of oFilesystem sValue to bOk
         Send Info_Box (SFormat("Result: %1", If(bOk, "removed", "not removed")))
     End_Procedure
 
