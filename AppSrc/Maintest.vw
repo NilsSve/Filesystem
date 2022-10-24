@@ -375,6 +375,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oDirIsEmptybn is a Button
+            Set Size to 14 68
+            Set Location to 54 12
+            Set Label to "Directory is empty"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoDirIsEmpty
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -648,6 +660,14 @@ Object oMaintest is a dbView
         Get Value of oTestDir to sValue
         Get DirectoryRemoveRecursive of oFilesystem sValue to bOk
         Send Info_Box (SFormat("Result: %1", If(bOk, "removed", "not removed")))
+    End_Procedure
+
+    Procedure DoDirIsEmpty
+        String sValue
+        Boolean bEmpty
+        Get Value of oTestDir to sValue
+        Get DirectoryIsEmpty of oFilesystem sValue to bEmpty
+        Send Info_Box (SFormat("Result: %1", If(bEmpty, "empty", "not empty")))
     End_Procedure
 
 End_Object

@@ -2035,20 +2035,18 @@ Class cFilesystem is a cObject
 
     
     // Returns true if the directory does not contain any subdirectories or files.
-    // ToDo: Test
-    Function IsDirectoryEmpty String sDirectoryName Returns Boolean
-        tsSearchResult[] alsSearchResults
+    Function DirectoryIsEmpty String sDirectoryName Returns Boolean
+        tsSearchResult[] lsaSearchResult
         Boolean bEmpty
         Get AddFolderSeperator sDirectoryName to sDirectoryName
-        Get FileSearch (sDirectoryName + "*") DIRMODE_FILES_AND_DIRECTORIES True True to alsSearchResults
-        Move (SizeOfArray(alsSearchResults) = 0) to bEmpty
+        Get FileSearch (sDirectoryName + "*") DIRMODE_FILES_AND_DIRECTORIES True True to lsaSearchResult
+        Move (SizeOfArray(lsaSearchResult) = 0) to bEmpty
         Function_Return bEmpty
     End_Function
-
+    
 
     // Converts the filetime in UTC and returns a datetime in local time.
-    // private
-    // ToDo: Test
+    {Visibility = Private}
     Function ConvertFileTileToLocalDateTime UBigInt ubiFileTime Returns DateTime
         Boolean bOk
         UBigInt ubiZero
