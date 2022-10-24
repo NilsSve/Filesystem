@@ -2164,7 +2164,6 @@ Class cFilesystem is a cObject
     
     // Removes the file extention from the sFile string and returns the extention including "."
     // Example sFile = "x:\text.txt". The function returns ".txt" and sFile = "x:\text".
-    // ToDo: Test
     Function RemoveExtention String ByRef sFilename Returns String
         String sExtention
         Integer iLengthExtention
@@ -2179,7 +2178,6 @@ Class cFilesystem is a cObject
 
     // Add a directory separator if it is not present.
     // Example sFoldername = "x:\FolderA". The function returns "x:\FolderA\"
-    // ToDo: Test
     Function AddFolderSeperator String sFolderName Returns String
         String sDirSep
         Move (SysConf(SYSCONF_DIR_SEPARATOR)) to sDirSep
@@ -2193,7 +2191,6 @@ Class cFilesystem is a cObject
     
     // Removes a directory separator if it is present.
     // Example sFoldername = "x:\FolderA\". The function returns "x:\FolderA"
-    // ToDo: Test
     Function RemoveFolderSeperator String sFolderName Returns String
         String sDirSep
         Move (SysConf(SYSCONF_DIR_SEPARATOR)) to sDirSep

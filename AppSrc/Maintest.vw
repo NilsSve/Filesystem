@@ -401,6 +401,36 @@ Object oMaintest is a dbView
         End_Object
     End_Object
 
+    Object ogrpHeper is a Group
+        Set Size to 100 175
+        Set Location to 148 351
+        Set Label to "Helper methods"
+
+        Object oAddFolderbn is a Button
+            Set Size to 14 75
+            Set Location to 12 9
+            Set Label to "Add folder seperator"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoAddFolderSeperator
+            End_Procedure
+        
+        End_Object
+
+        Object oRemoveFolderbn is a Button
+            Set Size to 14 84
+            Set Location to 12 87
+            Set Label to "Remove folder seperator"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoRemoveFolderSeperator
+            End_Procedure
+        
+        End_Object
+    End_Object
+
     // Binary file
     Procedure CreateTextFile
         String sFile
@@ -689,4 +719,19 @@ Object oMaintest is a dbView
         Send Info_Box (SFormat("Result: %1", If(bEmpty, "empty", "not empty")))
     End_Procedure
 
+    // Helper methods
+    Procedure DoAddFolderSeperator
+        String sValue
+        Get Value of oTestDir to sValue
+        Get AddFolderSeperator of oFilesystem sValue to sValue
+        Set Value of oTestDir to sValue
+    End_Procedure
+    
+    Procedure DoRemoveFolderSeperator
+        String sValue
+        Get Value of oTestDir to sValue
+        Get RemoveFolderSeperator of oFilesystem sValue to sValue
+        Set Value of oTestDir to sValue
+    End_Procedure
+    
 End_Object
