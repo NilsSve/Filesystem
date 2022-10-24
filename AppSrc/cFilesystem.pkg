@@ -1362,6 +1362,9 @@ Class cFilesystem is a cObject
 
     // Returns the file size of a file.
     // Returns -1 if an error occured.
+    CompilerLevelWarning AmbiguousFunctions Off 
+    // A function with the same name name is defined in the DF packages but with Integer as return value.
+    // To avoid any problems always use Get FileSize of oFilesystem sFilename to biSize instead of Move (Filesize(oFilesystem, sFilename)) to biSize
     Function FileSize String sFilename Returns BigInt
         tsSearchResult[] lsSearchResult
         Get FileSearch sFilename DIRMODE_FILES_ONLY to lsSearchResult
@@ -1370,6 +1373,7 @@ Class cFilesystem is a cObject
         End
         Function_Return -1
     End_Function
+    CompilerLevelWarning AmbiguousFunctions On
 
 
     // Returns the last write date of a file.
