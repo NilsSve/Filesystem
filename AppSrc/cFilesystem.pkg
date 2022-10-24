@@ -2204,7 +2204,6 @@ Class cFilesystem is a cObject
     
     // Changes all invalid chacters in sFilename with sReplaceCharacter according to Naming Conventions.
     // sReplacecharacter has to be a valid chararacter.
-    // ToDo: Test
     Function ValidFileName String sFilename String sReplaceCharacter Returns String
         String sValidFilename
         Integer iAscii 

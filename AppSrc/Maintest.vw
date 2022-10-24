@@ -429,6 +429,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oValidFileName is a Button
+            Set Size to 14 75
+            Set Location to 31 9
+            Set Label to "Valid file name"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoValidFileName
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -732,6 +744,13 @@ Object oMaintest is a dbView
         Get Value of oTestDir to sValue
         Get RemoveFolderSeperator of oFilesystem sValue to sValue
         Set Value of oTestDir to sValue
+    End_Procedure
+
+    Procedure DoValidFileName
+        String sBefore sAfter
+        Move "Some file name with *invalid* characters æøåÆØÅ.abc" to sBefore
+        Get ValidFileName of oFilesystem sBefore "_" to sAfter
+        Send Info_Box (SFormat("Before: %1 \nAfter: %2", sBefore, sAfter))
     End_Procedure
     
 End_Object
