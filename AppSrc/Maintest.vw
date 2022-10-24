@@ -441,6 +441,19 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oDumpFile is a Button
+            Set Size to 14 58
+            Set Location to 50 8
+            Set Label to "Dump file"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                // Same as CreateTextFile
+                Send CreateTextFile
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file

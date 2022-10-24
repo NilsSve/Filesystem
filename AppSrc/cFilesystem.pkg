@@ -2250,6 +2250,7 @@ Class cFilesystem is a cObject
     
 
     // Fetch the error message from windows.
+    {Visibility = Private}
     Procedure DoShowError Integer iErrorNumber String sAppendErrorText
         Pointer lpOut
         Integer iRetChars iRetVal
@@ -2274,7 +2275,7 @@ Class cFilesystem is a cObject
 
 
     // Shows a warning message to user with OK button and a exclamation icon.
-    // private
+    {Visibility = Private}
     Procedure warning_box String sWngMsg
         Integer iVoid
         Boolean bSendVdfError
@@ -2291,8 +2292,7 @@ Class cFilesystem is a cObject
 
     // Fetch the filename from the list of filenames associated with a filenumber.
     // This function is used for reporting filenames during an error.
-    // private
-    // ToDo: Test
+    {Visibility = Private}
     Function FileErrorText Integer iFilenumber Returns String
         String sErrorText
         structFile[] lsaFile
