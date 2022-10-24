@@ -333,6 +333,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oPreservedFilenamebn is a Button
+            Set Size to 14 86
+            Set Location to 91 167
+            Set Label to "File  preserved file name"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFilePreservedFileName
+            End_Procedure
+        
+        End_Object
     End_Object
 
     Object oDirgroup is a Group
@@ -635,6 +647,13 @@ Object oMaintest is a dbView
         Get FileTempPath of oFilesystem to sTempPath
         Get FileTempFileName of oFilesystem sTempPath "fs" to sTempFileName
         Send Info_Box (SFormat("Temp path: %1 \nTemp file name: %2", sTempPath, sTempFileName))
+    End_Procedure
+
+    Procedure DoFilePreservedFileName
+        String sValue sPreserved
+        Get Value of oTestFile to sValue
+        Get FilePreservedFilename of oFilesystem sValue to sPreserved
+        Send Info_Box (SFormat("Value: %1 \nPreserved: %2", sValue, sPreserved))
     End_Procedure
     
     // Directory methods

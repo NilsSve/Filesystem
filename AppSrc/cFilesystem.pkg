@@ -1963,6 +1963,44 @@ Class cFilesystem is a cObject
         Function_Return ""
     End_Function
 
+    // Returns the filename with full path where the casing is preserved from windows.
+    Function FilePreservedFilename String sFilename Returns String
+        Integer iNumOfDirectories iCurrentDirectory iSearchMode
+        String sPreservedFilename sCurDir sSearchName sDirSep
+        tsSearchResult[] lsaSearchResult
+        Move (SysConf(SYSCONF_DIR_SEPARATOR)) to sDirSep
+        Get CountOfFields sFilename sDirSep to iNumOfDirectories
+        For iCurrentDirectory from 1 to (iNumOfDirectories - 1)
+            Get FieldAtIndex sFilename iCurrentDirectory sDirSep to sCurDir
+            If (sCurDir <> "") Begin
+                If (Right(sCurDir, 1) <> ":") Begin
+                    Move (sPreservedFilename + sCurDir) to sSearchName
+                    Get FileSearch sSearchName DIRMODE_DIRECTORIES_ONLY to lsaSearchResult
+                    If (SizeOfArray(lsaSearchResult) > 0) Begin
+                        Move (sPreservedFilename + lsaSearchResult[0].sFilename + sDirSep) to sPreservedFilename
+                    End
+                    Else Begin
+                        Move (sPreservedFilename + sCurDir + sDirSep) to sPreservedFilename
+                    End
+                End
+                Else Begin
+                    Move (sPreservedFilename + sCurDir + sDirSep) to sPreservedFilename
+                End
+            End
+            Else Begin
+                Move (sPreservedFilename + sDirSep) to sPreservedFilename
+            End
+        Loop
+        Get FileSearch sFilename DIRMODE_FILES_AND_DIRECTORIES to lsaSearchResult
+        If (SizeOfArray(lsaSearchResult) > 0) Begin
+            Move (sPreservedFilename + lsaSearchResult[0].sFilename) to sPreservedFilename
+        End
+        Else Begin
+            Function_Return ""
+        End
+        Function_Return sPreservedFilename
+    End_Function
+    
 
     // Creates a new directory.
     // Returns True if succeeds.
@@ -2074,45 +2112,6 @@ Class cFilesystem is a cObject
     End_Function
 
     
-    // Returns the filename with full path where the casing is preserved from windows.
-    // ToDo: Test
-    Function FilePreservedFilename String sFilename Returns String
-        Integer iNumOfDirectories iCurrentDirectory iSearchMode
-        String sPreservedFilename sCurDir sSearchName
-        tsSearchResult[] lsSearchResult
-        Get CountOfFields sFilename "\" to iNumOfDirectories
-        For iCurrentDirectory from 1 to (iNumOfDirectories - 1)
-            Get FieldAtIndex sFilename iCurrentDirectory "\" to sCurDir
-            If (sCurDir <> "") Begin
-                If (Right(sCurDir, 1) <> ":") Begin
-                    Move (sPreservedFilename + sCurDir) to sSearchName
-                    Get FileSearch sSearchName DIRMODE_DIRECTORIES_ONLY to lsSearchResult
-                    If (SizeOfArray(lsSearchResult) > 0) Begin
-                        Move (sPreservedFilename + lsSearchResult[0].sFilename + "\") to sPreservedFilename
-                    End
-                    Else Begin
-                        Move (sPreservedFilename + sCurDir + "\") to sPreservedFilename
-                    End
-                End
-                Else Begin
-                    Move (sPreservedFilename + sCurDir + "\") to sPreservedFilename
-                End
-            End
-            Else Begin
-                Move (sPreservedFilename + "\") to sPreservedFilename
-            End
-        Loop
-        Get FileSearch sFilename DIRMODE_FILES_AND_DIRECTORIES to lsSearchResult
-        If (SizeOfArray(lsSearchResult) > 0) Begin
-            Move (sPreservedFilename + lsSearchResult[0].sFilename) to sPreservedFilename
-        End
-        Else Begin
-            Function_Return ""
-        End
-        Function_Return sPreservedFilename
-    End_Function
-    
-
     // Returns the number of fields present in a string of fields seperated by a delimiter.  
     // If sDelimiter is not applied the ";" will be used.
     Function CountOfFields String sFields String sDelimiter Returns Integer
