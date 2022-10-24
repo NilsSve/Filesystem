@@ -351,6 +351,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oDirCreatebn is a Button
+            Set Size to 14 68
+            Set Location to 17 87
+            Set Label to "Directory remove"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoDirRemove
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -610,5 +622,12 @@ Object oMaintest is a dbView
         Send Info_Box (SFormat("Result: %1", If(bOk, "created", "not created")))
     End_Procedure
 
+    Procedure DoDirRemove
+        String sValue
+        Boolean bOk
+        Get Value of oTestDir to sValue
+        Get DirectoryRemove of oFilesystem sValue to bOk
+        Send Info_Box (SFormat("Result: %1", If(bOk, "removed", "not removed")))
+    End_Procedure
 
 End_Object

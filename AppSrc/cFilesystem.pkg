@@ -282,8 +282,8 @@ External_Function fsCreateDirectory "CreateDirectoryW" Kernel32.dll ;
     Pointer lpSecAttributes ;       // Pointer to a SECURITY_ATTRIBUTES structure.
     Returns Integer
 
-External_Function fsRemoveDirectory "RemoveDirectoryA" Kernel32.dll ;
-    Pointer lpDirName ;             // Pointer to a null-terminated string that specifies the path of the directory to be removed.
+External_Function fsRemoveDirectory "RemoveDirectoryW" Kernel32.dll ;
+    WString lpDirName ;             // Pointer to a null-terminated string that specifies the path of the directory to be removed.
     Returns Integer    
 
 External_Function fsExtractAssociatedIcon "ExtractAssociatedIconW" shell32.dll ;
@@ -1987,21 +1987,19 @@ Class cFilesystem is a cObject
 
     // Removes an existing empty directory.
     // Returns True if succeeds.
-    // ToDo: Test
     Function DirectoryRemove String sDirectoryName Returns Boolean
-        String sDirectorynameANSI
         Boolean bFound bOk
         Integer iErrorNumber
         Move False to bOk
         Set pbError to False
         Get FileExists sDirectoryName DIRMODE_DIRECTORIES_ONLY to bFound
         If bFound Begin
-            Move (toAnsi(sDirectoryName)) to sDirectorynameANSI
-            Move (sDirectorynameANSI+(Character(0))) to sDirectorynameANSI
-            Move (fsRemoveDirectory(AddressOf(sDirectorynameANSI))) to bOk
-            If (bOk = False) Begin           // Could not delete
+            Move (fsRemoveDirectory(sDirectoryName)) to bOk
+            If (bOk = False) Begin
                 Move (fsGetLastError()) to iErrorNumber
-                If iErrorNumber Send DoShowError iErrorNumber ("Tried to remove directory: "+sDirectoryName)
+                If iErrorNumber Begin
+                    Send DoShowError iErrorNumber ("Tried to remove directory: "+sDirectoryName)
+                End
             End
         End
         Function_Return bOk
