@@ -163,7 +163,6 @@ Enum_List
     Define DIRMODE_FILES_AND_DIRECTORIES
 End_Enum_List
 
-// ToDo: Document this for use in BinaryfileReadUChar
 Define FS_BUFFERSIZE for |CI$2000
 
 //************************************************************************
@@ -171,7 +170,6 @@ Define FS_BUFFERSIZE for |CI$2000
 // Functions that needs variables for output are made global stings or
 // integers, and can be found on top of the declaration.
 //************************************************************************
-// ToDo: With 64 bit check for alignment.
 External_Function fsCreatefile "CreateFileW" kernel32.dll ;
     WString lpFile ;      // filename
     DWord dwDesAccess ;   // access mode
