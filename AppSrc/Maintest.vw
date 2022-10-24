@@ -75,20 +75,6 @@ Object oMaintest is a dbView
         
         End_Object
         
-        Object oTextLN is a Button
-            Set Size to 14 58
-            Set Location to 18 148
-            Set Label to "Readln text file"
-            Set Enabled_State to False
-            
-        
-            // fires when the button is clicked
-            Procedure OnClick
-                Send ReadlnTextFile
-            End_Procedure
-        
-        End_Object
-        
         Object oGetFileSize is a Button
             Set Size to 14 58
             Set Location to 38 11
@@ -479,29 +465,6 @@ Object oMaintest is a dbView
         End
     End_Procedure
     
-    // ToDo: Not ready to be tested yet.
-    Procedure ReadlnTextFile
-        String sFile sLine
-        Integer iFilenumber iFilenumber2
-        Boolean bOk bEndOfFile
-        Get Value of oTestFile to sFile
-        Get BinaryFileNextFilenumber of oFilesystem to iFilenumber
-        Get BinaryFileOpen of oFilesystem iFilenumber sFile to bOk
-        If (bOk) Begin
-            Get BinaryFileNextFilenumber of oFilesystem to iFilenumber2
-            Get BinaryFileOpen of oFilesystem iFilenumber2 (sFile + ".copy") False True to bOk
-            Repeat
-                Get BinaryFileReadCachedLN of oFilesystem iFilenumber (&sLine) (&bEndOfFile) to bOk
-                If (bOk) Begin
-                    Get BinaryFileWriteText of oFilesystem iFilenumber2 (&sLine) to bOk
-                End
-            Until (not(bOk) or (bEndOfFile))
-            Get BinaryFileClose of oFilesystem iFilenumber to bOk
-            Get BinaryFileClose of oFilesystem iFilenumber2 to bOk
-        End
-        Send Info_Box "Done."
-    End_Procedure
-
     Procedure GetFileSize
         String sFile
         Integer iFilenumber
