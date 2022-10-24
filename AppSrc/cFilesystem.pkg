@@ -260,11 +260,11 @@ External_Function fsSystemTimeToTzSpecificLocalTime "SystemTimeToTzSpecificLocal
     Pointer lpLocalTime ;           // A pointer to a SYSTEMTIME structure that receives the local time.
     Returns Integer
 
-External_Function fsGetTempFileName "GetTempFileNameA" kernel32.dll ;
-    Pointer sPathname ;
-    Pointer sPrefixString ;
-    Integer iUnique ;
-    Pointer sTempFileName ;
+External_Function fsGetTempFileName "GetTempFileNameW" kernel32.dll ;
+    WString sPathname ;             // The directory path for the file name.
+    WString sPrefixString ;         // The null-terminated prefix string.
+    Integer iUnique ;               // An unsigned integer to be used in creating the temporary file name.
+    Pointer sTempFileName ;         // A pointer to the buffer that receives the temporary file name.
     Returns Integer
 
 External_Function fsGetTempPath "GetTempPathW" Kernel32.Dll ;
@@ -1931,29 +1931,36 @@ Class cFilesystem is a cObject
     // not argumented the TEMP enviroment variable is used. If that is also not
     // available the current directory is used.
     // You can prefix the first 3 letters of the filename with sPrefix.
-    // ToDo: Test
+    // sPrefix may only be in the OEM defined character set.
     Function FileTempFileName String sPathName String sPrefix Returns String
-        String sPathNameTmp sPrefixTmp sTempFileName
+        String sPathNameTmp sPrefixTmp 
         Boolean bOk
+        WString sTempFileName
         Set pbError to False
-        If (num_arguments > 0) Move sPathName to sPathNameTmp
-        Else Move "" to sPathNameTmp
-        If (num_arguments > 1) Move sPrefix to sPrefixTmp
-        Else Move "" to sPrefixTmp
-        Move (Trim(sPathNameTmp)) to sPathNameTmp
+        If (num_arguments > 0) Begin
+            Move (Trim(sPathName)) to sPathNameTmp
+        End
+        Else Begin
+            Move "" to sPathNameTmp
+        End
+        If (num_arguments > 1) Begin
+            Move sPrefix to sPrefixTmp
+        End
+        Else Begin
+            Move "" to sPrefixTmp
+        End
         If (sPathNameTmp = "") Begin
             Get FileTempPath to sPathNameTmp
-            If (sPathNameTmp = "") Move "." to sPathNameTmp
+            If (sPathNameTmp = "") Begin
+                Move "." to sPathNameTmp
+            End
         End
-        ZeroString MAX_PATH to sTempFilename
-        Move (ToANSI(sPathNameTmp)) to sPathNameTmp
-        Move (ToANSI(sPrefixTmp)) to sPrefixTmp
-        Move (fsGetTempFileName(AddressOf(sPathNameTmp), AddressOf(sPrefixTmp), 0, AddressOf(sTempFileName))) to bOk
+        Move (ZeroString(MAX_PATH)) to sTempFilename    // Auto convert from string to wstring.
+        Move (fsGetTempFileName(sPathNameTmp, sPrefixTmp, 0, AddressOf(sTempFileName))) to bOk
         If bOk Begin
-            Move (ToOEM(sTempFileName)) to sTempFileName
-            Move (CString(sTempFileName)) to sTempFileName
+            Function_Return (CString(sTempFileName))    // Auto convert from wstring to string.
         End
-        Function_Return sTempFileName
+        Function_Return ""
     End_Function
 
 

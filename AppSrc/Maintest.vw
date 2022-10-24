@@ -309,6 +309,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oTempFileNamebn is a Button
+            Set Size to 14 59
+            Set Location to 38 253
+            Set Label to "Temp file name"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileTempFileName
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -550,6 +562,13 @@ Object oMaintest is a dbView
         String sTempPath
         Get FileTempPath of oFilesystem to sTempPath
         Send Info_Box sTempPath
+    End_Procedure
+
+    Procedure DoFileTempFileName
+        String sTempPath sTempFileName
+        Get FileTempPath of oFilesystem to sTempPath
+        Get FileTempFileName of oFilesystem sTempPath "fs" to sTempFileName
+        Send Info_Box (SFormat("Temp path: %1 \nTemp file name: %2", sTempPath, sTempFileName))
     End_Procedure
 
 End_Object
