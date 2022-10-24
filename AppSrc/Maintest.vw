@@ -5,7 +5,7 @@ Activate_View Activate_oMaintest for oMaintest
 Object oMaintest is a dbView
 
     Set Border_Style to Border_Thick
-    Set Size to 260 304
+    Set Size to 268 348
     Set Location to 12 30
     Set Label to "Maintest"
     Set pbAutoActivate to True
@@ -22,9 +22,21 @@ Object oMaintest is a dbView
     
     End_Object
 
+    Object oTestPath is a Form
+        Set Size to 12 173
+        Set Location to 24 86
+        Set Label to "Path:"
+        
+        Procedure Activating
+            Forward Send Activating
+            Set Value to "D:\FileTest;c:\Windows\Temp"
+        End_Procedure
+    
+    End_Object
+
     Object ogrpBinary is a Group
-        Set Size to 100 269
-        Set Location to 32 15
+        Set Size to 100 329
+        Set Location to 47 15
         Set Label to "Binary file methods"
 
         Object oCreateTextFile is a Button
@@ -38,6 +50,7 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+        
         Object oButton1 is a Button
             Set Size to 14 58
             Set Location to 18 80
@@ -49,6 +62,7 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+        
         Object oTextLN is a Button
             Set Size to 14 58
             Set Location to 18 148
@@ -62,6 +76,7 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+        
         Object oGetFileSize is a Button
             Set Size to 14 58
             Set Location to 38 11
@@ -100,8 +115,8 @@ Object oMaintest is a dbView
     End_Object
 
     Object ogrpFile is a Group
-        Set Size to 117 269
-        Set Location to 134 15
+        Set Size to 117 327
+        Set Location to 148 15
         Set Label to "File methods"
 
         Object oButton2 is a Button
@@ -268,6 +283,18 @@ Object oMaintest is a dbView
             // fires when the button is clicked
             Procedure OnClick
                 Send DoFileFullPathName
+            End_Procedure
+        
+        End_Object
+
+        Object oListOfFilesbn is a Button
+            Set Size to 14 77
+            Set Location to 18 204
+            Set Label to "List of files"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoListOfFiles
             End_Procedure
         
         End_Object
@@ -484,7 +511,6 @@ Object oMaintest is a dbView
     Procedure DoFileNameAndPath
         String sValue sName sPath
         Boolean bOk
-        Handle hIcon
         Get Value of oTestFile to sValue
         Get FileName of oFilesystem sValue to sName
         Get FilePath of oFilesystem sValue to sPath
@@ -494,10 +520,19 @@ Object oMaintest is a dbView
     Procedure DoFileFullPathName
         String sValue sFullPath
         Boolean bOk
-        Handle hIcon
         Get Value of oTestFile to sValue
         Get FullPathName of oFilesystem sValue to sFullPath
         Send Info_Box (SFormat("Full path name: %1", sFullPath))
     End_Procedure    
+
+    Procedure DoListOfFiles
+        String sValue sPath
+        Boolean bOk
+        String[] saList
+        Get Value of oTestFile to sValue
+        Get Value of oTestPath to sPath
+        Get ListOfFiles of oFilesystem sPath sValue to saList
+        Send Info_Box (SFormat("Found: %1", SizeOfArray(saList)))
+    End_Procedure
 
 End_Object

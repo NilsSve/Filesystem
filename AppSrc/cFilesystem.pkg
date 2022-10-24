@@ -1884,7 +1884,6 @@ Class cFilesystem is a cObject
     // Use:
     // Get ListOfFiles "path1;path2" "*.txt;*.asc"
     // This will return all the .txt and .asc files with full path that exists in path1 and path2.
-    // ToDo: Test
     Function ListOfFiles String sSearchPaths String sSearchFiles Returns String[]
         String[] saFileList                    
         Integer iFilelistCount iSearchFilesCount iCurSearchFile
@@ -1900,7 +1899,7 @@ Class cFilesystem is a cObject
                 If (sCurSearchFile <> "") Begin    
                     For iCurSearchPath from 1 to iSearchPathsCount     
                         Get FieldAtIndex sSearchPaths iCurSearchPath to sCurSearchPath
-                        If (Right(sCurSearchPath, 1) <> "\") Move (sCurSearchPath + "\") to sCurSearchPath
+                        Get AddFolderSeperator sCurSearchPath to sCurSearchPath
                         Get FileSearch (sCurSearchPath + sCurSearchFile) DIRMODE_FILES_ONLY to lsSearchResult
                         Move (SizeOfArray(lsSearchResult)) to iFilesFound
                         Decrement iFilesFound
@@ -2124,16 +2123,23 @@ Class cFilesystem is a cObject
 
     // Returns the number of fields present in a string of fields seperated by a delimiter.  
     // If sDelimiter is not applied the ";" will be used.
-    // ToDo: Test
     Function CountOfFields String sFields String sDelimiter Returns Integer
         Integer iChar icChar iField                                
         String sDlm
-        If (sFields ="") Function_Return 0
-        If (num_arguments > 1) Move sDelimiter to sDlm 
-        Else Move ";" to sDlm
+        If (sFields ="") Begin
+            Function_Return 0
+        End
+        If (num_arguments > 1) Begin
+            Move sDelimiter to sDlm 
+        End
+        Else Begin
+            Move ";" to sDlm
+        End
         Move (Length(sFields) -1) to icChar
         For iChar from 1 to icChar
-            If (Mid(sFields, 1, iChar) = sDlm) Increment iField
+            If (Mid(sFields, 1, iChar) = sDlm) Begin
+                Increment iField
+            End
         Loop
         Function_Return (iField +1)
     End_Function
@@ -2141,12 +2147,15 @@ Class cFilesystem is a cObject
 
     // Returns a field from a string containing multiple delimited fields. 
     // Index is 1-based.
-    // ToDo: Test
     Function FieldAtIndex String sFields Integer iIndex String sDelimiter Returns String
         Integer iChar iField iPos
         String sField sDlm
-        If (num_arguments > 2) Move sDelimiter to sDlm
-        Else Move ";" to sDlm
+        If (num_arguments > 2) Begin
+            Move sDelimiter to sDlm
+        End
+        Else begin
+            Move ";" to sDlm
+        End
         Move (sFields + sDlm) to sFields
         For iField from 1 to iIndex
             Move (Pos(sDlm, sFields)) to iPos
@@ -2154,7 +2163,9 @@ Class cFilesystem is a cObject
                 Move (Left(sFields, iPos -1)) to sField
                 Move (Right(sFields, Length(sFields) -iPos)) to sFields
             End
-            Else Function_Return ""
+            Else Begin
+                Function_Return ""
+            End
         Loop
         Function_Return sField
     End_Function                     
