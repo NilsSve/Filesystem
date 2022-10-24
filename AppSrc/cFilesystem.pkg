@@ -1443,7 +1443,7 @@ Class cFilesystem is a cObject
             Function_Return -1
         End
         Move lsFIXEDFILEINFO to lsFileVersionInfo.lsFIXEDFILEINFO
-        Get ConvertFileTileToLocalDateTime lsFIXEDFILEINFO.ubiFileDate to lsFileVersionInfo.dtCreationDateTime
+        Get ConvertFileTimeToLocalDateTime lsFIXEDFILEINFO.ubiFileDate to lsFileVersionInfo.dtCreationDateTime
         Move (Hi(lsFIXEDFILEINFO.dwFileVersionMS)) to lsFileVersionInfo.siFileVersion[0]
         Move (Low(lsFIXEDFILEINFO.dwFileVersionMS)) to lsFileVersionInfo.siFileVersion[1]
         Move (Hi(lsFIXEDFILEINFO.dwFileVersionLS)) to lsFileVersionInfo.siFileVersion[2]
@@ -1775,9 +1775,9 @@ Class cFilesystem is a cObject
                     Move (PointerToWString(lpFindData + iFileNameOffset)) to lsSearchResult[iSearchResultCount].sFilename // Auto convert from wstring to string.
                     Move (PointerToWString(lpFindData + iAltFileNameOffset)) to lsSearchResult[iSearchResultCount].sAlternateFileName   // Auto convert from wstring to string.
                     Move lsFindData.dwFileAttributes to lsSearchResult[iSearchResultCount].iFileAttributes
-                    Get ConvertFileTileToLocalDateTime lsFindData.ftCreationDateTime to lsSearchResult[iSearchResultCount].dtCreationDateTime
-                    Get ConvertFileTileToLocalDateTime lsFindData.ftLastAccessDateTime to lsSearchResult[iSearchResultCount].dtLastAccessDateTime
-                    Get ConvertFileTileToLocalDateTime lsFindData.ftLastWriteDateTime to lsSearchResult[iSearchResultCount].dtLastWriteDateTime
+                    Get ConvertFileTimeToLocalDateTime lsFindData.ftCreationDateTime to lsSearchResult[iSearchResultCount].dtCreationDateTime
+                    Get ConvertFileTimeToLocalDateTime lsFindData.ftLastAccessDateTime to lsSearchResult[iSearchResultCount].dtLastAccessDateTime
+                    Get ConvertFileTimeToLocalDateTime lsFindData.ftLastWriteDateTime to lsSearchResult[iSearchResultCount].dtLastWriteDateTime
                     Move ((lsFindData.nFileSizeHigh * biBigHi) + lsFindData.nFileSizeLow) to lsSearchResult[iSearchResultCount].biFileSize
                     Increment iSearchResultCount 
                     If (bOnlyOne) Begin
@@ -2047,7 +2047,7 @@ Class cFilesystem is a cObject
 
     // Converts the filetime in UTC and returns a datetime in local time.
     {Visibility = Private}
-    Function ConvertFileTileToLocalDateTime UBigInt ubiFileTime Returns DateTime
+    Function ConvertFileTimeToLocalDateTime UBigInt ubiFileTime Returns DateTime
         Boolean bOk
         UBigInt ubiZero
         structSystemTime lsSystemTime lsLocalTime
