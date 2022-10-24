@@ -5,7 +5,7 @@ Activate_View Activate_oMaintest for oMaintest
 Object oMaintest is a dbView
 
     Set Border_Style to Border_Thick
-    Set Size to 268 348
+    Set Size to 268 539
     Set Location to 12 30
     Set Label to "Maintest"
     Set pbAutoActivate to True
@@ -30,6 +30,18 @@ Object oMaintest is a dbView
         Procedure Activating
             Forward Send Activating
             Set Value to "D:\FileTest;c:\Windows\Temp"
+        End_Procedure
+    
+    End_Object
+
+    Object oTestDir is a Form
+        Set Size to 12 173
+        Set Location to 9 358
+        Set Label to "Directory:"
+        
+        Procedure Activating
+            Forward Send Activating
+            Set Value to "D:\FileTest\Testdir med æøå"
         End_Procedure
     
     End_Object
@@ -323,6 +335,24 @@ Object oMaintest is a dbView
         End_Object
     End_Object
 
+    Object oDirgroup is a Group
+        Set Size to 100 166
+        Set Location to 47 351
+        Set Label to "Directory methods"
+
+        Object oDirCreatebn is a Button
+            Set Size to 14 68
+            Set Location to 17 12
+            Set Label to "Directory create"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoDirCreate
+            End_Procedure
+        
+        End_Object
+    End_Object
+
     // Binary file
     Procedure CreateTextFile
         String sFile
@@ -570,5 +600,15 @@ Object oMaintest is a dbView
         Get FileTempFileName of oFilesystem sTempPath "fs" to sTempFileName
         Send Info_Box (SFormat("Temp path: %1 \nTemp file name: %2", sTempPath, sTempFileName))
     End_Procedure
+    
+    // Directory methods
+    Procedure DoDirCreate
+        String sValue
+        Boolean bOk
+        Get Value of oTestDir to sValue
+        Get DirectoryCreate of oFilesystem sValue to bOk
+        Send Info_Box (SFormat("Result: %1", If(bOk, "created", "not created")))
+    End_Procedure
+
 
 End_Object

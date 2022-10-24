@@ -277,8 +277,8 @@ External_Function fsSetFileAttributes "SetFileAttributesW" Kernel32.dll ;
     DWord dwFileAttributes ;
     Returns Boolean
 
-External_Function fsCreateDirectory "CreateDirectoryA" Kernel32.dll ;
-    Pointer lpDirName ;             // Pointer to a null-terminated string that specifies the path of the directory to be created.
+External_Function fsCreateDirectory "CreateDirectoryW" Kernel32.dll ;
+    WString lpDirName ;             // Pointer to a null-terminated string that specifies the path of the directory to be created.
     Pointer lpSecAttributes ;       // Pointer to a SECURITY_ATTRIBUTES structure.
     Returns Integer
 
@@ -1966,21 +1966,19 @@ Class cFilesystem is a cObject
 
     // Creates a new directory.
     // Returns True if succeeds.
-    // ToDo: Test
     Function DirectoryCreate String sDirectoryName Returns Boolean
-        String sDirectorynameANSI
         Boolean bFound bOk
         Integer iErrorNumber
         Move False to bOk
         Set pbError to False
         Get FileExists sDirectoryName DIRMODE_DIRECTORIES_ONLY to bFound
         If (not(bFound)) Begin
-            Move (toAnsi(sDirectoryName)) to sDirectorynameANSI
-            Move (sDirectorynameANSI+(Character(0))) to sDirectorynameANSI
-            Move (fsCreateDirectory(AddressOf(sDirectorynameANSI), FNULL)) to bOk
-            If (bOk = False) Begin           // Could not create
+            Move (fsCreateDirectory(sDirectoryName, FNULL)) to bOk
+            If (bOk = False) Begin
                 Move (fsGetLastError()) to iErrorNumber
-                If iErrorNumber Send DoShowError iErrorNumber ("Tried to create directory: "+sDirectoryname)
+                If iErrorNumber Begin
+                    Send DoShowError iErrorNumber ("Tried to create directory: "+sDirectoryname)
+                End
             End
         End
         Function_Return bOk
