@@ -267,9 +267,9 @@ External_Function fsGetTempFileName "GetTempFileNameA" kernel32.dll ;
     Pointer sTempFileName ;
     Returns Integer
 
-External_Function fsGetTempPath "GetTempPathA" Kernel32.Dll ;
-    Integer nBufferLength ;
-    Pointer lpBuffer ;
+External_Function fsGetTempPath "GetTempPathW" Kernel32.Dll ;
+    Integer nBufferLength ;         // The size of the string buffer identified by lpBuffer, in TCHARs.
+    Pointer lpBuffer ;              // A pointer to a string buffer that receives the null-terminated string specifying the temporary file path.
     Returns Integer
 
 External_Function fsSetFileAttributes "SetFileAttributesW" Kernel32.dll ;
@@ -1916,19 +1916,12 @@ Class cFilesystem is a cObject
 
 
     // Get Windows Temp path
-    // ToDo: Test
     Function FileTempPath Returns String
-        String sTempPath
         Integer iRetVal
-        ZeroString MAX_PATH to sTempPath
-        Move (fsGetTempPath(MAX_PATH, AddressOf(sTempPath))) to iRetVal
-        If (iRetVal > MAX_PATH) Begin
-            ZeroString iRetval to sTempPath
-            Move (fsGetTempPath(iRetVal, AddressOf(sTempPath))) to iRetVal
-        End
-        Move (ToOEM(sTempPath)) to sTempPath
-        Move (CString(sTempPath)) to sTempPath
-        Function_Return sTempPath
+        WString sTempPath
+        Move (ZeroString(MAX_PATH + 1)) to sTempPath    // Auto convert from string to wstring.
+        Move (fsGetTempPath(MAX_PATH + 1, AddressOf(sTempPath))) to iRetVal
+        Function_Return (CString(sTempPath))   // Auto convert from wstring to string.
     End_Function
 
 

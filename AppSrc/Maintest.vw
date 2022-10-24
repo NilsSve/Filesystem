@@ -298,6 +298,17 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oTempPathbn is a Button
+            Set Location to 38 199
+            Set Label to "Temp path"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileTempPath
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -533,6 +544,12 @@ Object oMaintest is a dbView
         Get Value of oTestPath to sPath
         Get ListOfFiles of oFilesystem sPath sValue to saList
         Send Info_Box (SFormat("Found: %1", SizeOfArray(saList)))
+    End_Procedure
+    
+    Procedure DoFileTempPath
+        String sTempPath
+        Get FileTempPath of oFilesystem to sTempPath
+        Send Info_Box sTempPath
     End_Procedure
 
 End_Object
