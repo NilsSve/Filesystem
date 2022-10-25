@@ -464,6 +464,19 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oCheckFileInUsebn is a Button
+            Set Size to 14 75
+            Set Location to 69 8
+            Set Label to "Check file in use"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                // Same as CreateTextFile
+                Send DoCheckFileInUse
+            End_Procedure
+        
+        End_Object
     End_Object
 
     // Binary file
@@ -782,6 +795,14 @@ Object oMaintest is a dbView
         Move "Some file name with *invalid* characters æøåÆØÅ.abc" to sBefore
         Get ValidFileName of oFilesystem sBefore "_" to sAfter
         Send Info_Box (SFormat("Before: %1 \nAfter: %2", sBefore, sAfter))
+    End_Procedure
+
+    Procedure DoCheckFileInUse
+        String sValue
+        Boolean bFileInUse
+        Get Value of oTestFile to sValue
+        Get CheckForFileInUse of oFilesystem sValue to bFileInUse
+        Send Info_Box (SFormat("Result: %1", If(bFileInUse, "file in use", "file is not in use")))
     End_Procedure
     
 End_Object

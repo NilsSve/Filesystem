@@ -432,6 +432,9 @@ Class cFilesystem is a cObject
         
         // If errormessages should be called with dataflex error command set this to true
         Property Boolean pbErrorAsVDFError False
+        
+        // True if any file error should be ignored.
+        Property Boolean pbIgnoreError False
 
         // Keeps assigned handles and filenames for each filenumber.
         // private
@@ -1977,7 +1980,11 @@ Class cFilesystem is a cObject
     {Visibility = Private}
     Procedure warning_box String sWngMsg
         Integer iVoid
-        Boolean bSendVdfError
+        Boolean bSendVdfError bIgnoreError
+        Get pbIgnoreError to bIgnoreError
+        If (bIgnoreError) Begin
+            Procedure_Return
+        End
         Set pbError to True
         Get pbErrorAsVDFError to bSendVdfError
         If (bSendVdfError = False) Begin
@@ -2014,5 +2021,28 @@ Class cFilesystem is a cObject
         Set BinaryFileEndOfFile iFilenumber to (SizeOfString(sString))        
         Get BinaryFileClose iFilenumber to bOk
     End_Procedure
+
+    // Returns true if the file is in use.
+    Function CheckForFileInUse String sFile Returns Boolean
+        Boolean bFileInUse bExists bOk bOldIgnoreStatus
+        Integer iFilenumber
+        
+        Get FileExists sFile DIRMODE_FILES_ONLY to bExists
+        If (bExists) Begin
+            Get pbIgnoreError to bOldIgnoreStatus
+            Set pbIgnoreError to True
+            Get BinaryFileNextFilenumber to iFilenumber
+            Get BinaryFileOpen iFilenumber sFile False False False to bOk
+            If (bOk) Begin
+                Get BinaryFileClose iFilenumber to bOk
+            End
+            Else Begin
+                Move True to bFileInUse
+            End
+            Set pbIgnoreError to bOldIgnoreStatus
+        End
+        
+        Function_Return bFileInUse
+    End_Function
 
 End_Class
