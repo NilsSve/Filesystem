@@ -122,6 +122,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oWriteBinaryLN is a Button
+            Set Size to 14 58
+            Set Location to 58 80
+            Set Label to "Write LN"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send WriteFileLN
+            End_Procedure
+        
+        End_Object
     End_Object
 
     Object ogrpFile is a Group
@@ -522,6 +534,21 @@ Object oMaintest is a dbView
                 Move (sData + Right(sHex, 2)) to sData
             Loop
             Get BinaryFileWriteHex of oFilesystem iFilenumber (&sData) to bOk
+            Get BinaryFileClose of oFilesystem iFilenumber to bOk
+        End
+    End_Procedure
+
+    Procedure WriteFileLN
+        String sFile sText
+        Integer iFilenumber
+        Short siValue
+        Boolean bOk
+        Get Value of oTestFile to sFile
+        Get BinaryFileNextFilenumber of oFilesystem to iFilenumber
+        Get BinaryFileOpen of oFilesystem iFilenumber sFile False True to bOk
+        If (bOk) Begin
+            Move "This is a text with æøåÆØÅ that is ended with cr_lf." to sText
+            Get BinaryFileWriteLN of oFilesystem iFilenumber sText to bOk
             Get BinaryFileClose of oFilesystem iFilenumber to bOk
         End
     End_Procedure

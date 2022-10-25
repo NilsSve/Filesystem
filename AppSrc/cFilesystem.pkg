@@ -738,6 +738,15 @@ Class cFilesystem is a cObject
         Function_Return bOk
     End_Function
     
+    // Shortcut to write text to a binary file as a textfile.
+    // Writes the string and appends character(13) and character(10) to the binary file.
+    // Returns true if the data was written to the file without error.
+    Function BinaryFileWriteLN Integer iFilenumber String sWriteData Returns Boolean
+        Boolean bOk
+        Move (sWriteData + ((Character(13))+(character(10)))) to sWriteData
+        Get BinaryFileWriteText iFilenumber (&sWriteData) to bOk
+        Function_Return bOk
+    End_Function 
     
     // Retrives the file size from a binary file.
     Function BinaryFileSize Integer iFilenumber Returns BigInt
