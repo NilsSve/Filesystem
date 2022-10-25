@@ -110,6 +110,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oReadData is a Button
+            Set Size to 14 58
+            Set Location to 18 145
+            Set Label to "Read data file"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send ReadDataFile
+            End_Procedure
+        
+        End_Object
     End_Object
 
     Object ogrpFile is a Group
@@ -464,7 +476,23 @@ Object oMaintest is a dbView
             End
         End
     End_Procedure
-    
+
+    Procedure ReadDataFile
+        String sFile
+        Integer iFilenumber iFileSize iBytesRead
+        Boolean bOk
+        UChar[] ucaData
+        Get Value of oTestFile to sFile
+        Get BinaryFileNextFilenumber of oFilesystem to iFilenumber
+        Get BinaryFileOpen of oFilesystem iFilenumber sFile to bOk
+        If (bOk) Begin
+            Get BinaryFileSize of oFilesystem iFilenumber to iFileSize
+            Get BinaryFileReadUChar of oFilesystem iFilenumber iFileSize (&ucaData) to iBytesRead
+            Get BinaryFileClose of oFilesystem iFilenumber to bOk
+            Send Info_Box (SFormat("Bytes read: %1", iBytesRead))
+        End
+    End_Procedure
+
     Procedure GetFileSize
         String sFile
         Integer iFilenumber
