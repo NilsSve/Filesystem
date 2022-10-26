@@ -134,6 +134,30 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oReadDataUntilMatch is a Button
+            Set Size to 14 104
+            Set Location to 18 211
+            Set Label to "Read data file until match"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoReadDataFileUntilMach
+            End_Procedure
+        
+        End_Object
+
+        Object oReadTextUntilMatch is a Button
+            Set Size to 14 104
+            Set Location to 34 211
+            Set Label to "Read text file until match"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoReadTextFileUntilMatch
+            End_Procedure
+        
+        End_Object
     End_Object
 
     Object ogrpFile is a Group
@@ -501,7 +525,7 @@ Object oMaintest is a dbView
             End
         End
     End_Procedure
-
+    
     Procedure ReadDataFile
         String sFile
         Integer iFilenumber iFileSize iBytesRead
@@ -516,6 +540,28 @@ Object oMaintest is a dbView
             Get BinaryFileClose of oFilesystem iFilenumber to bOk
             Send Info_Box (SFormat("Bytes read: %1", iBytesRead))
         End
+    End_Procedure
+
+    Procedure DoReadDataFileUntilMach
+        String sFile
+        Integer iFilenumber iFileSize iBytesRead
+        Boolean bOk bEndOfFile
+        UChar[] ucaData ucaSearch
+        Get Value of oTestFile to sFile
+        Move (StringToUCharArray("æøå")) to ucaSearch
+        Get BinaryFileNextFilenumber of oFilesystem to iFilenumber
+        Get BinaryFileOpen of oFilesystem iFilenumber sFile to bOk
+        If (bOk) Begin
+            Repeat
+                Get BinaryFileReadUCharUntilMatch of oFilesystem iFilenumber ucaSearch (&ucaData) (&bEndOfFile) to iBytesRead
+                Send Info_Box (SFormat("Bytes read including match: %1", iBytesRead))
+            Until (bEndOfFile)
+            Get BinaryFileClose of oFilesystem iFilenumber to bOk
+        End
+    End_Procedure
+
+    Procedure DoReadTextFileUntilMatch
+        // ToDo: Make call to BinaryFileReadTextUntilMatch
     End_Procedure
 
     Procedure GetFileSize

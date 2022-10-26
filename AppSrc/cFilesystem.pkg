@@ -437,15 +437,15 @@ Class cFilesystem is a cObject
         Property Boolean pbIgnoreError False
 
         // Keeps assigned handles and filenames for each filenumber.
-        // private
+        {Visibility = Private}
         Property structFile[] plsaFile
         
-        // Keeps read cached buffers for each filenumer. Used for BinaryReadChcheu
-        // private
-        Property String[] psaCachedBuffer
+        // Keeps read cached buffers for each filenumer.
+        {Visibility = Private}
+        Property UChar[][] puaaCachedBuffer
         
         // Pointers for cached buffers.
-        // private
+        {Visibility = Private}
         Property structFileBufferPointer[] plsCachedPointer
     End_Procedure
 
@@ -480,7 +480,6 @@ Class cFilesystem is a cObject
     // If bReadOnly is True the file is opened with only read access (and only read shared mode if bShared is also true).
     // Returns true if the file was opened or created without error.
     Function BinaryFileOpen Integer iFilenumber String sFilename Boolean bShared Boolean bCreate Boolean bReadOnly Returns Boolean
-        Pointer lpFilenamePointer
         Integer iReturnValue iErrornumber
         DWord dwSharedMode dwCreateMode dwAccessMode
         structFile[] lsaFile
@@ -548,7 +547,8 @@ Class cFilesystem is a cObject
         Handle hHandle
         structFile[] lsaFile
         structFileBufferPointer[] lsaFileBufferPointer
-        String[] saCachedBuffer
+        UChar[][] uaaCachedBuffer
+        UChar[] uaEmpty
         Boolean bOk
         Get BinaryFileHandle iFilenumber to hHandle
         Set pbError to False
@@ -564,15 +564,15 @@ Class cFilesystem is a cObject
             Else Begin
                 Get plsaFile to lsaFile
                 Get plsCachedPointer to lsaFileBufferPointer
-                Get psaCachedBuffer to saCachedBuffer
+                Get puaaCachedBuffer to uaaCachedBuffer
                 Move 0 to lsaFile[iFilenumber].hFilehandle
-                Move "" to saCachedBuffer[iFilenumber]
+                Move uaEmpty to uaaCachedBuffer[iFilenumber]
                 Move 1 to lsaFileBufferPointer[iFilenumber].iBufferPointer
                 Move 0 to lsaFileBufferPointer[iFilenumber].iBufferSize
                 Move 0 to lsaFileBufferPointer[iFilenumber].biFromFilePosition
                 Set plsaFile to lsaFile
                 Set plsCachedPointer to lsaFileBufferPointer
-                Set psaCachedBuffer to saCachedBuffer
+                Set puaaCachedBuffer to uaaCachedBuffer
                 Move True to bOk
             End
         End
@@ -633,6 +633,7 @@ Class cFilesystem is a cObject
         Handle hFileHandle
         Integer iBytesRead iMaxBuffer iErrorNumber
         Boolean bOk
+        structFile[] lsaFile
         Set pbError to False
         Move 0 to iBytesRead
         If (iNumberOfBytes < 1) Begin
@@ -652,6 +653,9 @@ Class cFilesystem is a cObject
             Else Begin
                 If (iBytesRead = 0 or iBytesRead <> iNumberOfBytes) Begin
                     Set pbEOF to True
+                    Get plsaFile to lsaFile
+                    Move True to lsaFile[iFilenumber].bEndOfFile
+                    Set plsaFile to lsaFile
                     Move (ResizeArray(uaReadBuffer, iBytesRead)) to uaReadBuffer
                 End
             End
@@ -660,6 +664,80 @@ Class cFilesystem is a cObject
             Send warning_box FS_FILEHANDLEMISSING
         End
         Function_Return iBytesRead
+    End_Function
+
+    // Reading from a binary file until a search array is matched.
+    // The data read from the file is placed in the uaReturnBuffer and the function returns the number of bytes read until the match is read including the match.
+    // Then the function returns 0 the end of file has been reached (pbEOF will then be true) or an error has occured (pbError will then be true).
+    // The return uchar array buffer would also be empty.
+    // No errors occures if you try to read past end of file.
+    Function BinaryFileReadUCharUntilMatch Integer iFilenumber UChar[] uaMatchString UChar[] ByRef uaReturnBuffer Boolean ByRef bEndOfFile Returns Integer
+        Handle hFileHandle
+        Integer iBuffersize iMatchPos iLengthMatch
+        UChar uByte
+        UChar[] uaBuffer uaEmpty
+        UChar[][] uaaCachedBuffer 
+        structFile[] lsaFile
+        structFileBufferPointer[] lsaFileBufferPointer
+        Get plsaFile to lsaFile
+        Move uaEmpty to uaReturnBuffer
+        // ToDo: Buffer pointer is 1-based because of old text (mid()) function. Change to 0-based
+        Move 1 to iMatchPos
+        Move False to bEndOfFile
+        If (iFilenumber < SizeOfArray(lsaFile)) Begin
+            Move lsaFile[iFilenumber].hFilehandle to hFileHandle
+            If (hFileHandle <> 0) Begin
+                Move (SizeOfArray(uaMatchString)) to iLengthMatch
+                Get plsCachedPointer to lsaFileBufferPointer
+                Get puaaCachedBuffer to uaaCachedBuffer
+                If (iFilenumber >= SizeOfArray(lsaFileBufferPointer)) Begin
+                    Move 1 to lsaFileBufferPointer[iFilenumber].iBufferPointer
+                    Move uaEmpty to uaaCachedBuffer[iFilenumber]
+                End
+                Repeat
+                    If (lsaFileBufferPointer[iFilenumber].iBufferPointer > lsaFileBufferPointer[iFilenumber].iBufferSize) Begin
+                        Move FS_BUFFERSIZE to iBuffersize
+                        Get BinaryFilePosition iFilenumber to lsaFileBufferPointer[iFilenumber].biFromFilePosition
+                        // ToDo: Test with bigger file than FS_BUFFERSIZE
+                        Get BinaryFileReadUChar iFilenumber iBuffersize (&uaaCachedBuffer[iFilenumber]) to lsaFileBufferPointer[iFilenumber].iBufferSize
+                        Move 1 to lsaFileBufferPointer[iFilenumber].iBufferPointer
+                        Set puaaCachedBuffer to uaaCachedBuffer
+                    End
+                    If (lsaFileBufferPointer[iFilenumber].iBufferPointer =< lsaFileBufferPointer[iFilenumber].iBufferSize) Begin
+                        // ToDo: Change buffer pointer to 0-based
+                        Move uaaCachedBuffer[iFilenumber][lsaFileBufferPointer[iFilenumber].iBufferPointer - 1] to uByte
+                        Increment lsaFileBufferPointer[iFilenumber].iBufferPointer
+                        Move uByte to uaReturnBuffer[SizeOfArray(uaReturnBuffer)]
+                        // ToDo: Change match pointer to 0-based
+                        If (uByte = uaMatchString[iMatchPos - 1]) Begin
+                            Increment iMatchPos
+                        End
+                        Else Begin
+                            Move 1 to iMatchPos
+                        End
+                    End
+                Until (iMatchPos > iLengthMatch or lsaFileBufferPointer[iFilenumber].iBufferSize = 0)   
+                Set plsCachedPointer to lsaFileBufferPointer
+                If (lsaFileBufferPointer[iFilenumber].iBufferSize = 0) Begin
+                    Move lsaFile[iFilenumber].bEndOfFile to bEndOfFile
+                End
+            End
+            Else Begin
+                Send warning_box FS_FILEHANDLEMISSING
+            End
+        End
+        Function_Return (SizeOfArray(uaReturnBuffer))
+    End_Function
+
+    // Reading text from a binary file as a text file until a search string is matched.
+    // The text returns the text read until the match is read including the match.
+    // Then the function returns and empty string if the end of file has been reached (pbEOF will then be true) or an error has occured (pbError will then be true).
+    // No errors occures if you try to read past end of file.
+    // ToDo: Test
+    Function BinaryFileReadTextUntilMatch Integer iFilenumber String sMatchString Boolean ByRef bEndOfFile Returns String
+        String sText
+        // ToDo: Make wrapper to BinaryFileReadUCharUntilMatch
+        Function_Return sText
     End_Function
 
     // Writing text to a binary file.
