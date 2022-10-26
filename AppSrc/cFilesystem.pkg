@@ -165,6 +165,10 @@ End_Enum_List
 
 Define FS_BUFFERSIZE for |CI$2000
 
+#IFNDEF CR_LF
+    Define CR_LF for (Character(13)+Character(10))
+#ENDIF
+
 //************************************************************************
 // Declarations of external functions.
 // Functions that needs variables for output are made global stings or
@@ -698,7 +702,6 @@ Class cFilesystem is a cObject
                     If (lsaFileBufferPointer[iFilenumber].iBufferPointer > lsaFileBufferPointer[iFilenumber].iBufferSize) Begin
                         Move FS_BUFFERSIZE to iBuffersize
                         Get BinaryFilePosition iFilenumber to lsaFileBufferPointer[iFilenumber].biFromFilePosition
-                        // ToDo: Test with bigger file than FS_BUFFERSIZE
                         Get BinaryFileReadUChar iFilenumber iBuffersize (&uaaCachedBuffer[iFilenumber]) to lsaFileBufferPointer[iFilenumber].iBufferSize
                         Move 1 to lsaFileBufferPointer[iFilenumber].iBufferPointer
                         Set puaaCachedBuffer to uaaCachedBuffer
@@ -740,6 +743,13 @@ Class cFilesystem is a cObject
         Move (StringToUCharArray(sMatchString)) to uaSearch
         Get BinaryFileReadUCharUntilMatch iFilenumber uaSearch (&uaReturnBuffer) (&bEndOfFile) to iBytesRead
         Function_Return (UCharArrayToString(uaReturnBuffer))
+    End_Function
+    
+    // Shortcut to read text lines from a binary file as a textfile seperated by character(13) and character(10).
+    Function BinaryFileReadLN Integer iFilenumber Boolean ByRef bEndOfFile Returns String
+        String sText
+        Get BinaryFileReadTextUntilMatch iFilenumber CR_LF (&bEndOfFile) to sText
+        Function_Return sText
     End_Function
 
     // Writing text to a binary file.
@@ -826,7 +836,7 @@ Class cFilesystem is a cObject
     // Returns true if the data was written to the file without error.
     Function BinaryFileWriteLN Integer iFilenumber String sWriteData Returns Boolean
         Boolean bOk
-        Move (sWriteData + ((Character(13))+(character(10)))) to sWriteData
+        Move (sWriteData + CR_LF) to sWriteData
         Get BinaryFileWriteText iFilenumber (&sWriteData) to bOk
         Function_Return bOk
     End_Function 

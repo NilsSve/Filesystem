@@ -158,6 +158,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oReadBinaryLN is a Button
+            Set Size to 14 58
+            Set Location to 58 145
+            Set Label to "Read LN"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send ReadFileLN
+            End_Procedure
+        
+        End_Object
     End_Object
 
     Object ogrpFile is a Group
@@ -544,7 +556,7 @@ Object oMaintest is a dbView
 
     Procedure DoReadDataFileUntilMach
         String sFile
-        Integer iFilenumber iFileSize iBytesRead
+        Integer iFilenumber iBytesRead
         Boolean bOk bEndOfFile
         UChar[] ucaData ucaSearch
         Get Value of oTestFile to sFile
@@ -562,7 +574,7 @@ Object oMaintest is a dbView
 
     Procedure DoReadTextFileUntilMatch
         String sFile sSearch sTextRead
-        Integer iFilenumber iFileSize iBytesRead
+        Integer iFilenumber
         Boolean bOk bEndOfFile
         Get Value of oTestFile to sFile
         Move "æøå" to sSearch
@@ -571,6 +583,22 @@ Object oMaintest is a dbView
         If (bOk) Begin
             Repeat
                 Get BinaryFileReadTextUntilMatch of oFilesystem iFilenumber sSearch (&bEndOfFile) to sTextRead
+                Send Info_Box (SFormat("Text including match: %1", sTextRead))
+            Until (bEndOfFile)
+            Get BinaryFileClose of oFilesystem iFilenumber to bOk
+        End
+    End_Procedure
+    
+    Procedure ReadFileLN
+        String sFile sTextRead
+        Integer iFilenumber
+        Boolean bOk bEndOfFile
+        Get Value of oTestFile to sFile
+        Get BinaryFileNextFilenumber of oFilesystem to iFilenumber
+        Get BinaryFileOpen of oFilesystem iFilenumber sFile to bOk
+        If (bOk) Begin
+            Repeat
+                Get BinaryFileReadLN of oFilesystem iFilenumber (&bEndOfFile) to sTextRead
                 Send Info_Box (SFormat("Text including match: %1", sTextRead))
             Until (bEndOfFile)
             Get BinaryFileClose of oFilesystem iFilenumber to bOk
