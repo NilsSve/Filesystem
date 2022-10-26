@@ -745,11 +745,30 @@ Class cFilesystem is a cObject
         Function_Return (UCharArrayToString(uaReturnBuffer))
     End_Function
     
-    // Shortcut to read text lines from a binary file as a textfile seperated by character(13) and character(10).
-    Function BinaryFileReadLN Integer iFilenumber Boolean ByRef bEndOfFile Returns String
-        String sText
-        Get BinaryFileReadTextUntilMatch iFilenumber CR_LF (&bEndOfFile) to sText
-        Function_Return sText
+    // Shortcut to read text lines from a binary file as a textfile.
+    // Reads until sCharEOL are recieved.
+    // The text is returned without the ending sCharEOL.
+    // If sCharEOL is not applied the charactersequence character(13) + character(10) is used.
+    // Returns True when the line has been read.
+    Function BinaryFileReadLN Integer iFilenumber String ByRef sLine Boolean ByRef bEndOfFile String sCharEOL Returns Boolean
+        String sEOL
+        Integer iEOLLength
+        Boolean bEndOfRow
+        If (num_arguments > 3) Begin
+            Move sCharEOL to sEOL
+        End
+        Else Begin
+            Move CR_LF to sEOL
+        End
+        Get BinaryFileReadTextUntilMatch iFilenumber sEOL (&bEndOfFile) to sLine
+        If (Length(sLine) > 0) Begin
+            Move (Length(sEOL)) to iEOLLength
+            If (Right(sLine, iEOLLength) = sEOL) Begin
+                Move (Left(sLine, (Length(sLine) - iEOLLength))) to sLine
+                Move True to bEndOfRow
+            End
+        End
+        Function_Return bEndOfRow
     End_Function
 
     // Writing text to a binary file.

@@ -592,13 +592,13 @@ Object oMaintest is a dbView
     Procedure ReadFileLN
         String sFile sTextRead
         Integer iFilenumber
-        Boolean bOk bEndOfFile
+        Boolean bOk bEndOfFile bEndOfLine
         Get Value of oTestFile to sFile
         Get BinaryFileNextFilenumber of oFilesystem to iFilenumber
         Get BinaryFileOpen of oFilesystem iFilenumber sFile to bOk
         If (bOk) Begin
             Repeat
-                Get BinaryFileReadLN of oFilesystem iFilenumber (&bEndOfFile) to sTextRead
+                Get BinaryFileReadLN of oFilesystem iFilenumber (&sTextRead) (&bEndOfFile) to bEndOfLine
                 Send Info_Box (SFormat("Text including match: %1", sTextRead))
             Until (bEndOfFile)
             Get BinaryFileClose of oFilesystem iFilenumber to bOk
