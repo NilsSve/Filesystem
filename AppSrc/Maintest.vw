@@ -561,7 +561,20 @@ Object oMaintest is a dbView
     End_Procedure
 
     Procedure DoReadTextFileUntilMatch
-        // ToDo: Make call to BinaryFileReadTextUntilMatch
+        String sFile sSearch sTextRead
+        Integer iFilenumber iFileSize iBytesRead
+        Boolean bOk bEndOfFile
+        Get Value of oTestFile to sFile
+        Move "æøå" to sSearch
+        Get BinaryFileNextFilenumber of oFilesystem to iFilenumber
+        Get BinaryFileOpen of oFilesystem iFilenumber sFile to bOk
+        If (bOk) Begin
+            Repeat
+                Get BinaryFileReadTextUntilMatch of oFilesystem iFilenumber sSearch (&bEndOfFile) to sTextRead
+                Send Info_Box (SFormat("Text including match: %1", sTextRead))
+            Until (bEndOfFile)
+            Get BinaryFileClose of oFilesystem iFilenumber to bOk
+        End
     End_Procedure
 
     Procedure GetFileSize

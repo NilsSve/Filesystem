@@ -733,11 +733,13 @@ Class cFilesystem is a cObject
     // The text returns the text read until the match is read including the match.
     // Then the function returns and empty string if the end of file has been reached (pbEOF will then be true) or an error has occured (pbError will then be true).
     // No errors occures if you try to read past end of file.
-    // ToDo: Test
     Function BinaryFileReadTextUntilMatch Integer iFilenumber String sMatchString Boolean ByRef bEndOfFile Returns String
         String sText
-        // ToDo: Make wrapper to BinaryFileReadUCharUntilMatch
-        Function_Return sText
+        UChar[] uaSearch uaReturnBuffer
+        Integer iBytesRead
+        Move (StringToUCharArray(sMatchString)) to uaSearch
+        Get BinaryFileReadUCharUntilMatch iFilenumber uaSearch (&uaReturnBuffer) (&bEndOfFile) to iBytesRead
+        Function_Return (UCharArrayToString(uaReturnBuffer))
     End_Function
 
     // Writing text to a binary file.
