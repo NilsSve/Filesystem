@@ -445,6 +445,18 @@ Object oMaintest is a dbView
             End_Procedure
         
         End_Object
+
+        Object oDirCreateExbn is a Button
+            Set Size to 14 128
+            Set Location to 72 12
+            Set Label to "Directory create missing directories"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoDirCreateEx
+            End_Procedure
+        
+        End_Object
     End_Object
 
     Object ogrpHeper is a Group
@@ -836,6 +848,14 @@ Object oMaintest is a dbView
         Get Value of oTestDir to sValue
         Get DirectoryCreate of oFilesystem sValue to bOk
         Send Info_Box (SFormat("Result: %1", If(bOk, "created", "not created")))
+    End_Procedure
+
+    Procedure DoDirCreateEx
+        String sValue
+        Boolean bOk
+        Get Value of oTestDir to sValue
+        Get DirectoryCreateEx of oFilesystem sValue to bOk
+        Send Info_Box (SFormat("Result: %1", If(bOk, "created or existed already", "not created")))
     End_Procedure
 
     Procedure DoDirRemove

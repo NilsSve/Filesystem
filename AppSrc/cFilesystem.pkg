@@ -1833,6 +1833,66 @@ Class cFilesystem is a cObject
         Function_Return bOk
     End_Function
 
+    // Creates a new directory and all missing parent directories in the sPath.
+    // If the sPath contains a filename set bPathContainsFileName to true. This will create all the parent directories for the filename. The filename itself will not be created.
+    // If a parent directory already exists it will be skipped.
+    // Requires an absolute path.
+    // Returns true if all the directories could be created or was already created.
+    Function DirectoryCreateEx String sPath Boolean bPathContainsFileName Returns Boolean
+        Boolean bOk bExists bFilePath
+        Integer iPos iDirSepLength
+        String sCurrentPath sDirSep
+        If (num_arguments > 1) Begin
+            Move bPathContainsFileName to bFilePath
+        End
+        If (bFilePath) Begin
+            Get FilePath sPath to sPath
+        End
+        Get RemoveFolderSeperator sPath to sPath
+        Get FileExists sPath DIRMODE_DIRECTORIES_ONLY to bExists
+        If (bExists) Begin
+            Function_Return True
+        End
+        Get AddFolderSeperator sPath to sPath
+        Move (SysConf(SYSCONF_DIR_SEPARATOR)) to sDirSep
+        Move (Length(sDirSep)) to iDirSepLength
+        Move True to bOk
+        // Check for absolute path an skip device or volume.
+        Move (Pos((":\" + sDirSep), sPath)) to iPos
+        If (iPos > 0) Begin
+            Increment iPos
+        End
+        Else Begin
+            // UNC path
+            If (Left(sPath, 2) = "\\") Begin
+                // Host name
+                Move (Pos("\", sPath, 3)) to iPos
+                If (iPos > 0) Begin
+                    Increment iPos
+                    // Share name
+                    Move (Pos("\", sPath, iPos)) to iPos
+                    If (iPos > 0) Begin
+                        Increment iPos
+                    End
+                End
+            End
+        End
+        If (iPos = 0) Begin
+            Send warning_box (SFormat("The path %1 is not an absolute path.", sPath))
+            Function_Return False
+        End
+        While (iPos > 0 and bOk)
+            Move (Pos(sDirSep, sPath, iPos + iDirSepLength)) to iPos
+            If (iPos > 0) Begin
+                Move (Left(sPath, (iPos - 1))) to sCurrentPath
+                Get FileExists sCurrentPath DIRMODE_DIRECTORIES_ONLY to bExists
+                If (not(bExists)) Begin
+                    Get DirectoryCreate sCurrentPath to bOk
+                End
+            End
+        Loop
+        Function_Return bOk
+    End_Function
 
     // Removes an existing empty directory.
     // Returns True if succeeds.
@@ -1892,7 +1952,6 @@ Class cFilesystem is a cObject
         Move (SizeOfArray(lsaSearchResult) = 0) to bEmpty
         Function_Return bEmpty
     End_Function
-    
 
     // Converts the filetime in UTC and returns a datetime in local time.
     {Visibility = Private}
