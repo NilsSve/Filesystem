@@ -460,7 +460,7 @@ Object oMaintest is a dbView
     End_Object
 
     Object ogrpHeper is a Group
-        Set Size to 100 175
+        Set Size to 117 174
         Set Location to 148 351
         Set Label to "Helper methods"
 
@@ -507,7 +507,6 @@ Object oMaintest is a dbView
         
             // fires when the button is clicked
             Procedure OnClick
-                // Same as CreateTextFile
                 Send CreateTextFile
             End_Procedure
         
@@ -520,8 +519,19 @@ Object oMaintest is a dbView
         
             // fires when the button is clicked
             Procedure OnClick
-                // Same as CreateTextFile
                 Send DoCheckFileInUse
+            End_Procedure
+        
+        End_Object
+
+        Object oFileSizeInKB is a Button
+            Set Size to 14 75
+            Set Location to 87 8
+            Set Label to "File size in KB"
+        
+            // fires when the button is clicked
+            Procedure OnClick
+                Send DoFileSizeInKB
             End_Procedure
         
         End_Object
@@ -910,6 +920,15 @@ Object oMaintest is a dbView
         Get Value of oTestFile to sValue
         Get CheckForFileInUse of oFilesystem sValue to bFileInUse
         Send Info_Box (SFormat("Result: %1", If(bFileInUse, "file in use", "file is not in use")))
+    End_Procedure
+
+    Procedure DoFileSizeInKB
+        String sValue sKB
+        BigInt biFileSize
+        Get Value of oTestFile to sValue
+        Get FileSize of oFilesystem sValue to biFileSize
+        Get FileSizeInKB of oFilesystem biFileSize to sKB
+        Send Info_Box (SFormat("The file size for %1 is %2 and rounded to %3.", sValue, biFileSize, sKB))
     End_Procedure
     
 End_Object

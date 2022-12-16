@@ -418,6 +418,7 @@ Register_Function FileErrorText Integer iFilenumber Returns String
 
 Use GlobalFunctionsProcedures.pkg
 Use CharTranslate.pkg
+Use gFormatNumbers.pkg
 
 //************************************************************************
 // The filesystem class
@@ -2211,6 +2212,25 @@ Class cFilesystem is a cObject
         End
         
         Function_Return bFileInUse
+    End_Function
+    
+    // Returns the file size in KB rounded up (ceiling).
+    // This is the same behavior as in Microsoft Explorer.
+    Function FileSizeInKB BigInt biValue Returns String
+        String sValue
+        Number nKB
+        BigInt biTest
+        If (biValue > |CH99999999999999999) Begin // 99 PB file size. The NTFS system only allows for 16 TB for each file.
+             Function_Return (String(biValue))
+        End
+        Move (biValue / 1024) to nKB
+        Move (Cast(nKB, BigInt)) to biTest
+        Move (biTest * 1024) to biTest
+        If (biTest < biValue) Begin
+            Move (nKB + 1) to nKB
+        End
+        Move (SFormat("%1 KB", FormatNumber(nKB, 0))) to sValue
+        Function_Return sValue
     End_Function
 
 End_Class
