@@ -1859,7 +1859,7 @@ Class cFilesystem is a cObject
         Move (Length(sDirSep)) to iDirSepLength
         Move True to bOk
         // Check for absolute path an skip device or volume.
-        Move (Pos((":\" + sDirSep), sPath)) to iPos
+        Move (Pos((":" + sDirSep), sPath)) to iPos
         If (iPos > 0) Begin
             Increment iPos
         End
