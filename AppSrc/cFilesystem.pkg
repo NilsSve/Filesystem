@@ -18,24 +18,42 @@
 //************************************************************************
 // fsCreatefile.
 #IFNDEF GENERIC_READ
-Define GENERIC_READ for            |CI$80000000
-Define GENERIC_WRITE for           |CI$40000000
-Define GENERIC_RANDOM for          (GENERIC_READ + GENERIC_WRITE)
-Define CREATE_NEW for              |CI$00000001
-Define CREATE_ALWAYS for           |CI$00000002
-Define OPEN_EXISTING for           |CI$00000003
-Define OPEN_ALWAYS for             |CI$00000004
-Define TRUNCATE_EXISTING for       |CI$00000005
+    Define GENERIC_READ for            |CI$80000000
+#ENDIF
+#IFNDEF GENERIC_WRITE
+    Define GENERIC_WRITE for           |CI$40000000
+#ENDIF
+#IFNDEF GENERIC_RANDOM
+    Define GENERIC_RANDOM for          (GENERIC_READ + GENERIC_WRITE)
+#ENDIF
+#IFNDEF CREATE_NEW
+    Define CREATE_NEW for              |CI$00000001
+#ENDIF
+#IFNDEF CREATE_ALWAYS
+    Define CREATE_ALWAYS for           |CI$00000002
+#ENDIF
+#IFNDEF OPEN_EXISTING
+    Define OPEN_EXISTING for           |CI$00000003
+#ENDIF
+#IFNDEF OPEN_ALWAYS
+    Define OPEN_ALWAYS for             |CI$00000004
+#ENDIF
+#IFNDEF TRUNCATE_EXISTING
+    Define TRUNCATE_EXISTING for       |CI$00000005
 #ENDIF
 
 #IFNDEF FILE_ATTRIBUTE_NORMAL
-Define FILE_ATTRIBUTE_NORMAL for   |CI$00000080
+    Define FILE_ATTRIBUTE_NORMAL for   |CI$00000080
 #ENDIF
 
 #IFNDEF FILE_SHARE_READ
-Define FILE_SHARE_READ for         |CI$1
-Define FILE_SHARE_WRITE for        |CI$2
-Define FILE_SHARE_RANDOM for       (FILE_SHARE_READ + FILE_SHARE_WRITE)
+    Define FILE_SHARE_READ for         |CI$1
+#ENDIF
+#IFNDEF FILE_SHARE_WRITE
+    Define FILE_SHARE_WRITE for        |CI$2
+#ENDIF
+#IFNDEF FILE_SHARE_RANDOM
+    Define FILE_SHARE_RANDOM for       (FILE_SHARE_READ + FILE_SHARE_WRITE)
 #ENDIF
 
 // Generel.
@@ -79,19 +97,43 @@ Define MAX_ALTPATH            for 14
 #ENDIF
 
 #IFNDEF FILE_ATTRIBUTE_READONLY
-Define FILE_ATTRIBUTE_READONLY   for |CI$01
+Define FILE_ATTRIBUTE_READONLY   For |CI$01
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_HIDDEN
 Define FILE_ATTRIBUTE_HIDDEN     For |CI$02
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_SYSTEM
 Define FILE_ATTRIBUTE_SYSTEM     For |CI$04
-Define FILE_ATTRIBUTE_DIRECTORY  for |CI$10
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_DIRECTORY
+Define FILE_ATTRIBUTE_DIRECTORY  For |CI$10
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_ARCHIVE
 Define FILE_ATTRIBUTE_ARCHIVE    For |CI$20
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_NORMAL
 Define FILE_ATTRIBUTE_NORMAL     For |CI$80
-Define FILE_ATTRIBUTE_TEMPORARY  for |CI$100
-Define FILE_ATTRIBUTE_SPARSE_FILE for |CI$200
-Define FILE_ATTRIBUTE_REPARSE_POINT for |CI$400
-Define FILE_ATTRIBUTE_COMPRESSED for |CI$800
-Define FILE_ATTRIBUTE_OFFLINE    for |CI$1000
-Define FILE_ATTRIBUTE_NOT_CONTENT_INDEXED for |CI$2000
-Define FILE_ATTRIBUTE_ENCRYPTED  for |CI$4000
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_TEMPORARY
+Define FILE_ATTRIBUTE_TEMPORARY  For |CI$100
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_SPARSE_FILE
+Define FILE_ATTRIBUTE_SPARSE_FILE For |CI$200
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_REPARSE_POINT
+Define FILE_ATTRIBUTE_REPARSE_POINT For |CI$400
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_COMPRESSED
+Define FILE_ATTRIBUTE_COMPRESSED For |CI$800
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_OFFLINE
+Define FILE_ATTRIBUTE_OFFLINE    For |CI$1000
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_NOT_CONTENT_INDEXED
+Define FILE_ATTRIBUTE_NOT_CONTENT_INDEXED For |CI$2000
+#ENDIF
+#IFNDEF FILE_ATTRIBUTE_ENCRYPTED
+Define FILE_ATTRIBUTE_ENCRYPTED  For |CI$4000
 #ENDIF
 
 // Flags for tsVS_FIXEDFILEINFO.dwFileFlags.
@@ -186,6 +228,20 @@ External_Function fsCreatefile "CreateFileW" kernel32.dll ;
 
 External_Function fsGetLastError "GetLastError" kernel32.dll Returns Integer
 
+External_Function fsFormatMessage "FormatMessageW" kernel32.dll ;
+DWord dwFlags ;         // source and processing options
+Pointer lpSrc ;         // message source
+DWord dwMsgId ;         // message identifier
+DWord dwLngId ;         // language identifier
+Pointer lpBuf ;         // message buffer
+DWord nSize ;           // maximum size of message buffer
+Pointer Arg ;           // array of message inserts
+Returns Integer
+
+External_Function fsLocalFree "LocalFree" kernel32.dll ;
+Handle hMem ;   // A handle to the local memory object.
+Returns Integer
+
 External_Function fsCloseHandle "CloseHandle" kernel32.dll ;
     Handle hObject ;        // handle to object
     Returns Integer
@@ -249,6 +305,28 @@ External_Function fsFindNextFile "FindNextFileW" Kernel32.Dll ;
 
 External_Function fsFindClose "FindClose" Kernel32.dll ;
     Handle hFindFile ;              // File search handle. This handle must have been previously opened by the FindFirstFile function.
+    Returns Integer
+
+#IFNDEF get_fsGetFileTime
+External_Function fsGetFileTime "GetFileTime" Kernel32.dll ;
+    Handle  hFile  ;                // Handle For a file from createfile with read access
+    Pointer lpCreationtime ;        // Pointer to a FILETIME structure containing the file creation time
+    Pointer lpLastAccesstime ;      // Pointer to a FILETIME structure containing the file last access time
+    Pointer lpLastWritetime ;       // Pointer to a FILETIME structure containing the file last write time
+    Returns Integer
+#ENDIF
+
+#IFNDEF get_fsSetFileTime
+External_Function fsSetFileTime "SetFileTime" Kernel32.dll ;
+    Handle  hFile  ;                // Handle For a file from createfile with write access
+    Pointer lpCreationtime ;        // Pointer to a FILETIME structure containing the file creation time
+    Pointer lpLastAccesstime ;      // Pointer to a FILETIME structure containing the file last access time
+    Pointer lpLastWritetime ;       // Pointer to a FILETIME structure containing the file last write time
+    Returns Integer
+#ENDIF
+
+External_Function fsGetSystemTimeAsFileTime "GetSystemTimeAsFileTime" Kernel32.dll ;
+    Pointer lpSystemTimeAsFileTime ;   // Pointer to a FILETIME structure containing the current system time in filetimme format
     Returns Integer
 
 External_Function fsFileTimeToSystemTime "FileTimeToSystemTime" Kernel32.dll ;
@@ -327,6 +405,17 @@ External_Function fsGetFullPathName "GetFullPathNameW" Kernel32.dll ;
 //************************************************************************
 // Structures
 //************************************************************************
+
+// Nils 2018-08-30 Added For the SourceCodeTools project
+// so we don't need to use both Akefs.pkg and this package.
+#IFNDEF _struct_tFileTime
+// A 64-bit value representing the number of 100-nanosecond intervals since January 1, 1601 (UTC).
+Struct tFileTime
+    DWord dwLowDateTime    // Low-order part of the file time.
+    DWord dwHighDateTime   // High-order part of the file time.
+End_Struct
+#ENDIF
+
 Struct structWFDW
     DWord dwFileAttributes 
     UBigInt ftCreationDateTime
@@ -1412,6 +1501,26 @@ Class cFilesystem is a cObject
         Function_Return sHex
     End_Function
 
+    {Visibility = Private}
+    Function VerQueryValueStringFileInfo Address aBuffer String sInfoName tsLandAndCodePage lsLandAndCodePage Returns String
+        String sSubBlock
+        String sValue  
+        WString wValue
+        DWord dwBufferLen dwBufferPointer
+        Boolean bOk
+        Move (SFormat("\StringFileInfo\%1%2\%3", ShortToHex(Self, lsLandAndCodePage.wLanguage), ShortToHex(Self, lsLandAndCodePage.wCodePage), sInfoName)) to sSubBlock
+        Move (sSubBlock + (Character(0))) to sSubBlock
+        Move 0 to dwBufferLen
+        Move 0 to dwBufferPointer
+        Move (fsVerQueryValue(aBuffer, sSubBlock, AddressOf(dwBufferPointer), AddressOf(dwBufferLen))) to bOk
+        If (not(bOk)) Begin
+            Function_Return ""
+        End
+        Move (ZeroString(dwBufferLen)) to wValue  // size is in bytes, so we are reserving too much space
+        Move (MemCopy(AddressOf(wValue), dwBufferPointer, dwBufferLen)) to bOk  // memcopy copies the correct amount though
+        Move (CString(wValue)) To sValue
+        Function_Return sValue
+    End_Function
 
     // Returns the file extention without the leading "."
     // Example sFile = "x:\text.txt". The function returns "txt".
@@ -1681,7 +1790,7 @@ Class cFilesystem is a cObject
                         Move True to bStop
                     End
                 End
-            End
+            Loop
         End
         Function_Return lsSearchResult
     End_Function
@@ -2072,7 +2181,102 @@ Class cFilesystem is a cObject
         Function_Return sFolderName
     End_Function
 
-    
+    Function FileLastWriteTime String sFileName Returns tFileTime
+        DWord dwAccess
+        DWord dwShared
+        DWord dwCreate
+        Handle hFile
+        Integer iRetval iErrorNumber
+        tFileTime ftLastWrite
+        //
+        Append sFilename (Character(0)) (Character(0))
+        Move (GENERIC_READ ior GENERIC_WRITE) to dwAccess
+        Move FILE_SHARE_RANDOM   to dwShared
+        Move OPEN_EXISTING       to dwCreate
+
+        Move (fsCreatefile(sFilename, dwAccess, dwShared, FNULL, dwCreate, FILE_ATTRIBUTE_NORMAL, FNULL)) To hFile
+        If (hFile = INVALID_HANDLE_VALUE) Begin
+            Move (fsGetLastError()) to iErrorNumber
+            If iErrorNumber Begin
+                Send DoShowError iErrorNumber sFileName
+            End
+            Procedure_Return
+        End
+        Else Begin
+            Move 0 to ftLastWrite.dwLowDateTime
+            Move (fsGetFileTime(hFile,FNULL,FNULL,AddressOf(ftLastWrite))) to iRetval
+            If (iRetVal = 0) Begin           //Could not close
+                Move (fsGetLastError()) to iErrorNumber
+                If iErrorNumber Begin
+                    Send DoShowError iErrorNumber sFileName
+                End
+            End
+            Move (fsCloseHandle(hFile)) to iRetVal
+            If (iRetVal = 0) Begin           //Could not close
+                Move (fsGetLastError()) to iErrorNumber
+                If iErrorNumber Begin
+                    Send DoShowError iErrorNumber sFileName
+                End
+            End
+        End
+        Function_Return ftLastWrite
+    End_Function
+
+    Function CurrentSystemTimeAsFileTime Returns tFileTime
+        Integer iRetVal
+        Integer iErrorNumber
+        String  sFileName
+        tFileTime ftCurrentTime
+
+        Move 0 to ftCurrentTime.dwLowDateTime
+        Move (fsGetSystemTimeAsFileTime(AddressOf(ftCurrentTime))) to iRetVal
+        If (iRetVal = 0) Begin
+            Move (fsGetLastError()) to iErrorNumber
+            If iErrorNumber Begin
+                Send DoShowError iErrorNumber sFileName
+            End
+        End
+        Function_Return ftCurrentTime
+    End_Function
+
+    // Nils 2018-08-30 Added this message from Akefs.pkg as we need it For the
+    // SourceCodeTools project
+    Procedure Set FileLastWriteTime String sFileName tFileTime ftLastWrite
+        DWord dwAccess dwShared dwCreate
+        Handle hFile
+        Integer iRetval iErrorNumber
+
+        Append sFilename (Character(0)) (Character(0))
+        Move (GENERIC_READ ior GENERIC_WRITE) to dwAccess
+        Move FILE_SHARE_RANDOM   to dwShared
+        Move OPEN_EXISTING       to dwCreate
+
+        Move (fsCreatefile(sFilename, dwAccess, dwShared, FNULL, dwCreate, FILE_ATTRIBUTE_NORMAL, FNULL)) to hFile
+        If (hFile = INVALID_HANDLE_VALUE) Begin
+            Move (fsGetLastError()) to iErrorNumber
+            If (iErrorNumber <> 0) Begin
+                Send DoShowError iErrorNumber sFileName
+            End
+            Procedure_Return
+        End
+        Else Begin
+            Move (fsSetFileTime(hFile,FNULL,FNULL,AddressOf(ftLastWrite))) to iRetval
+            If (iRetVal = 0) Begin           //Could not close
+                Move (fsGetLastError()) to iErrorNumber
+                If (iErrorNumber <> 0) Begin
+                    Send DoShowError iErrorNumber sFileName
+                End
+            End
+            Move (fsCloseHandle(hFile)) to iRetVal
+            If (iRetVal = 0) Begin           //Could not close
+                Move (fsGetLastError()) to iErrorNumber
+                If (iErrorNumber <> 0) Begin
+                    Send DoShowError iErrorNumber sFileName
+                End
+            End
+        End
+    End_Procedure
+
     // Changes all invalid chacters in sFilename with sReplaceCharacter according to Naming Conventions.
     // sReplacecharacter has to be a valid chararacter.
     Function ValidFileName String sFilename String sReplaceCharacter Returns String
