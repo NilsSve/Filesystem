@@ -577,7 +577,9 @@ Class cFilesystem is a cObject
         Integer iReturnValue iErrornumber
         DWord dwSharedMode dwCreateMode dwAccessMode
         structFile[] lsaFile
+        String sFilenameANSI
         Boolean bOk bFilehandleOK
+        
         Get plsaFile to lsaFile
         If (iFilenumber < SizeOfArray(lsaFile)) Begin
             If (lsaFile[iFilenumber].hFilehandle = 0) Begin
@@ -589,6 +591,7 @@ Class cFilesystem is a cObject
         End
         If bFilehandleOK Begin
             Move sFilename to lsaFile[iFilenumber].sFilename
+            Move sFilename to sFilenameANSI
             Set pbError to False
             Move False to bOk
             Move GENERIC_RANDOM to dwAccessMode
@@ -612,7 +615,8 @@ Class cFilesystem is a cObject
                     End
                 End
             End
-            Move (fsCreatefile(sFilename, dwAccessMode, dwSharedMode, FNULL, dwCreateMode, FILE_ATTRIBUTE_NORMAL, FNULL)) to iReturnValue
+            Append sFilenameANSI (Character(0)) (Character(0))
+            Move (fsCreatefile(sFilenameANSI, dwAccessMode, dwSharedMode, FNULL, dwCreateMode, FILE_ATTRIBUTE_NORMAL, FNULL)) to iReturnValue
             If (iReturnValue = INVALID_HANDLE_VALUE) Begin
                 Move (fsGetLastError()) to iErrornumber
                 If iErrornumber Begin
@@ -1588,7 +1592,7 @@ Class cFilesystem is a cObject
     
     // Returns the full path and file name of the specified file.
     // This takes the relative path build from the current application path.
-    Function FullPathName String sFilename Returns String
+    Function FullPathNameFP String sFilename Returns String
         String sAppPath sFullPath sOldCurrentDir
         Boolean bChanged
         Integer iResult iErrorNumber
